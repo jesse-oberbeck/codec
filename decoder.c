@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
+
 struct FileHeader
 {
     long unsigned int FileType: 32;
@@ -62,7 +67,7 @@ struct Status
     long unsigned int MaxHP  : 24;
     long unsigned int Type   : 8;
     long unsigned int Speed  : 32;
-    char *Name : 32;
+    long unsigned int Name   : 32;
 };
 
 struct Command
@@ -106,11 +111,17 @@ int file_size(FILE *words)
 
 int main(void)
 {
-    FILE *words = fopen("hello.pcap", "r");
+    FILE *words = fopen("hello.pcap", "rb");
     //int filesize = file_size(words);
     //char *contents = read_file(filesize, words);
-    struct FileHeader fh;
-    fread(fh.FileType, sizeof(fh.FileType), 1, words);
-    printf("%x\n", fh.FileType);
+    struct FileHeader *fh = malloc(sizeof(*fh));
+    struct FileHeader thing = *fh;
+    fread(fh, 32, 1, words);
+    fread(fh, 16, 1, words);
+    fread(fh, 16, 1, words);
+    fread(fh, 32, 1, words);
+    fread(fh, 32, 1, words);
+    fread(fh, 32, 1, words);
+    printf("%x\n", thing.FileType);
     
 }
