@@ -25,26 +25,26 @@ struct __attribute__((__packed__)) PcapHeader
 
 struct __attribute__((__packed__)) EthernetHeader
 {
-    uint32_t Dmac    : 24;
-    uint32_t Dmac2   : 24;
-    uint32_t Smac    : 24;
-    uint32_t Smac2   : 24;
+    uint32_t Dmac    : 32;
+    uint16_t Dmac2   : 16;
+    uint32_t Smac    : 32;
+    uint16_t Smac2   : 16;
     uint32_t Etype   : 16;
 };
 
 struct __attribute__((__packed__)) Ipv4Header
 {
-    uint32_t Version : 4;
-    uint32_t IHL     : 4;
-    uint32_t DSCP    : 6;
-    uint32_t ECN     : 2;
-    uint32_t TotalLen: 16;
-    uint32_t Ident   : 16;
-    uint32_t Flags   : 3;
-    uint32_t FragOff : 13;
-    uint32_t TTL     : 8;
-    uint32_t Protocol: 8;
-    uint32_t CheckSum: 16;
+    int Version : 4;
+    int IHL     : 4;
+    int DSCP    : 6;
+    int ECN     : 2;
+    uint16_t TotalLen: 16;
+    uint16_t Ident   : 16;
+    int Flags   : 3;
+    uint16_t FragOff : 13;
+    uint8_t TTL     : 8;
+    uint8_t Protocol: 8;
+    uint16_t CheckSum: 16;
     uint32_t SIP     : 32;
     uint32_t DIP     : 32;
 };
@@ -59,8 +59,8 @@ struct __attribute__((__packed__)) UdpHeader
 
 struct __attribute__((__packed__)) ZergHeader
 {
-    uint32_t Version : 4;
-    uint32_t Type    : 4;//////////
+    uint32_t Type : 4;
+    uint32_t Version    : 4;//////////
     uint32_t TotalLen: 24;
     uint32_t Sid     : 16;
     uint32_t Did     : 16;
@@ -69,6 +69,7 @@ struct __attribute__((__packed__)) ZergHeader
 
 struct Message
 {
+    char *Message;
     //Might not be needed. Entire payload is text.
     //"Not null terminated" so will have to cut off at packet len.
 };
@@ -137,6 +138,8 @@ int main(void)
     struct Ipv4Header *ih = calloc(sizeof(*ih),1); //ip header
     struct UdpHeader *uh = calloc(sizeof(*uh),1); //udp header
     struct ZergHeader *zh = calloc(sizeof(*zh),1); //zerg header
+    //struct Message *m = calloc(sizeof(char*),1); //MESSAGE TEST
+    char *message = calloc((sizeof(char*)), 16);
     //char testpayload[sizeof((zh->TotalLen)) - 64] = {'\0'};
     char *testpayload;
     fread(fh, sizeof(struct FileHeader), 1, words);
@@ -145,13 +148,24 @@ int main(void)
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
     fread(zh, sizeof(struct ZergHeader), 1, words);
-    //fread(testpayload, sizeof(char*), 1, words);
-    puts("tp print");
-    macholder = htonl(eh->Smac);
-    macholder2 = htonl(eh->Smac2);
-    printf("%x\n", htonl(zh->Sequence));
+    fread(message, sizeof(char*), 1, words);
+    macholder = htonl(eh->Dmac);
+    macholder2 = htonl(eh->Dmac2);
+    macholder2 = macholder2 >> 16;
+    printf("File Type: %x\n", (fh->FileType));
+    printf("Major Version: %x\n", htonl(fh->MajorVer) >> 24);
+    printf("Minor Version: %x\n", htonl(fh->MinorVer) >> 24);
+    printf("Link Layer Type: %x\n\n", htonl(fh->LLT) >> 24);
+    printf("Length of Data Captured: %x\n\n", htonl(ph->DataLen) >> 24);
+    printf("Ethernet Type: %x\n", htonl(eh->Etype) >> 24);
+    printf("IP Version: %x\n", htonl(ih->Version) >> 24);
+    printf("IHL: %x\n", htonl(ih->IHL) >> 24);
+    
+    printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
+    printf("Zerg Type: %x\n", htonl(zh->Type));
+    printf("Sequence: %x\n", htonl(zh->Sequence));
     printf("%x\n", htonl(zh->TotalLen));
-    printf("%3x ", (int)(macholder));
+    printf("Destination MAC: %3x", (int)(macholder));
     printf("%3x\n", (int)(macholder2));
-    //printf("%s\n", testpayload);
+    printf("%s\n", message);
 }
