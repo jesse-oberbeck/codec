@@ -175,7 +175,8 @@ int main(void)
 
     if(zerg_type == 0)
     {
-        char *message = calloc(200, 16);
+        int messageLen = (htonl(zh->TotalLen) >> 8) - 24;
+        char *message = calloc(messageLen, 1);
         fread(message, htonl(zh->TotalLen) >> 8, 1, words);
         printf("%s\n", message);
     }
@@ -187,9 +188,10 @@ int main(void)
         //char *name = ((htonl)(st->Name));
         //printf("Name: %s\n", name);
         //char *name = (char)(st->Name);
-        //int nameLen =5;
-        char *message = calloc(200, 16);
-        fread(message, htonl(zh->TotalLen) >> 8, 1, words);
+        int nameLen = (htonl(zh->TotalLen) >> 8) - 24;
+        //printf("namelen: %d\n", nameLen);
+        char *message = calloc(nameLen, 1);
+        fread(message, nameLen, 1, words);
         printf("Name: %s\n", message);
         printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
 
