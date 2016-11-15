@@ -6,65 +6,65 @@
 
 struct __attribute__((__packed__)) FileHeader //stackoverflow.com/questions/4306186/structure-padding-and-packing
 {
-    long unsigned int FileType: 32;
-    long unsigned int MajorVer: 16;
-    long unsigned int MinorVer: 16;
-    long unsigned int GMT     : 32;
-    long unsigned int Acc     : 32;
-    long unsigned int MaxLen  : 32;
-    long unsigned int LLT     : 32;
+    uint32_t FileType: 32;
+    uint32_t MajorVer: 16;
+    uint32_t MinorVer: 16;
+    uint32_t GMT     : 32;
+    uint32_t Acc     : 32;
+    uint32_t MaxLen  : 32;
+    uint32_t LLT     : 32;
 };
 
 struct __attribute__((__packed__)) PcapHeader
 {
-    long unsigned int Epoch   : 32;
-    long unsigned int EpochMil: 32;
-    long unsigned int DataLen : 32;
-    long unsigned int PackLen : 32;
+    uint32_t Epoch   : 32;
+    uint32_t EpochMil: 32;
+    uint32_t DataLen : 32;
+    uint32_t PackLen : 32;
 };
 
 struct __attribute__((__packed__)) EthernetHeader
 {
-    long unsigned int Dmac    : 24;
-    long unsigned int Dmac2   : 24;
-    long unsigned int Smac    : 24;
-    long unsigned int Smac2   : 24;
-    long unsigned int Etype   : 16;
+    uint32_t Dmac    : 24;
+    uint32_t Dmac2   : 24;
+    uint32_t Smac    : 24;
+    uint32_t Smac2   : 24;
+    uint32_t Etype   : 16;
 };
 
 struct __attribute__((__packed__)) Ipv4Header
 {
-    long unsigned int Version : 4;
-    long unsigned int IHL     : 4;
-    long unsigned int DSCP    : 6;
-    long unsigned int ECN     : 2;
-    long unsigned int TotalLen: 16;
-    long unsigned int Ident   : 16;
-    long unsigned int Flags   : 3;
-    long unsigned int FragOff : 13;
-    long unsigned int TTL     : 8;
-    long unsigned int Protocol: 8;
-    long unsigned int CheckSum: 16;
-    long unsigned int SIP     : 32;
-    long unsigned int DIP     : 32;
+    uint32_t Version : 4;
+    uint32_t IHL     : 4;
+    uint32_t DSCP    : 6;
+    uint32_t ECN     : 2;
+    uint32_t TotalLen: 16;
+    uint32_t Ident   : 16;
+    uint32_t Flags   : 3;
+    uint32_t FragOff : 13;
+    uint32_t TTL     : 8;
+    uint32_t Protocol: 8;
+    uint32_t CheckSum: 16;
+    uint32_t SIP     : 32;
+    uint32_t DIP     : 32;
 };
 
 struct __attribute__((__packed__)) UdpHeader
 {
-    long unsigned int Sport   : 16;
-    long unsigned int Dport   : 16;
-    long unsigned int Len     : 16;
-    long unsigned int CheckSum: 16;
+    uint32_t Sport   : 16;
+    uint32_t Dport   : 16;
+    uint32_t Len     : 16;
+    uint32_t CheckSum: 16;
 };
 
 struct __attribute__((__packed__)) ZergHeader
 {
-    long unsigned int Version : 4;
-    long unsigned int Type    : 4;//////////
-    long unsigned int TotalLen: 24;
-    long unsigned int Sid     : 16;
-    long unsigned int Did     : 16;
-    long unsigned int Sequence: 32;
+    uint32_t Version : 4;
+    uint32_t Type    : 4;//////////
+    uint32_t TotalLen: 24;
+    uint32_t Sid     : 16;
+    uint32_t Did     : 16;
+    uint32_t Sequence: 32;
 };
 
 struct Message
@@ -75,29 +75,29 @@ struct Message
 
 struct __attribute__((__packed__)) Status
 {
-    long unsigned int HP     : 24;
-    long unsigned int Armor  : 8;
-    long unsigned int MaxHP  : 24;
-    long unsigned int Type   : 8;
-    long unsigned int Speed  : 32;
-    long unsigned int Name   : 32;
+    uint32_t HP     : 24;
+    uint32_t Armor  : 8;
+    uint32_t MaxHP  : 24;
+    uint32_t Type   : 8;
+    uint32_t Speed  : 32;
+    uint32_t Name   : 32;
 };
 
 struct __attribute__((__packed__)) Command
 {
-    long unsigned int Command: 16;
-    long unsigned int Param1 : 16;
-    long unsigned int Param2 : 32;
+    uint32_t Command: 16;
+    uint32_t Param1 : 16;
+    uint32_t Param2 : 32;
 };
 
 struct __attribute__((__packed__)) GPS
 {
-    long unsigned int Longit : 64;
-    long unsigned int Latit  : 64;
-    long unsigned int Altit  : 32;
-    long unsigned int Bearing: 32;
-    long unsigned int Speed  : 32;
-    long unsigned int Acc    : 32;
+    uint64_t Longit : 64;
+    uint64_t Latit  : 64;
+    uint32_t Altit  : 32;
+    uint32_t Bearing: 32;
+    uint32_t Speed  : 32;
+    uint32_t Acc    : 32;
 };
 
 /*Read in file.*/
@@ -146,11 +146,12 @@ int main(void)
     fread(uh, sizeof(struct UdpHeader), 1, words);
     fread(zh, sizeof(struct ZergHeader), 1, words);
     //fread(testpayload, sizeof(char*), 1, words);
-    macholder = eh->Dmac;
-    macholder2 = eh->Dmac2;
+    puts("tp print");
+    macholder = htonl(eh->Smac);
+    macholder2 = htonl(eh->Smac2);
     printf("%x\n", htonl(zh->Sequence));
     printf("%x\n", htonl(zh->TotalLen));
-    printf("%x", (int)(htonl)(macholder));
-    printf("%x\n", (int)(htonl)(macholder2));
+    printf("%3x ", (int)(macholder));
+    printf("%3x\n", (int)(macholder2));
     //printf("%s\n", testpayload);
 }
