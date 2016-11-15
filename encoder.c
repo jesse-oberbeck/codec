@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    char *testheader = "\xA1\xB2\xC3\xD4";
+    char *testheader = "\xD4\xC3\xB2\xA1";
     FILE *words = fopen("testing.pcap", "wb+");
     fwrite(testheader, strlen(testheader), 1, words);
 }

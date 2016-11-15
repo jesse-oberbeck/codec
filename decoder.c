@@ -34,16 +34,16 @@ struct __attribute__((__packed__)) EthernetHeader
 
 struct __attribute__((__packed__)) Ipv4Header
 {
-    int Version : 4;
-    int IHL     : 4;
-    int DSCP    : 6;
-    int ECN     : 2;
+    int IHL          : 4;
+    int Version      : 4;
+    int DSCP         : 6;
+    int ECN          : 2;
     uint16_t TotalLen: 16;
     uint16_t Ident   : 16;
-    int Flags   : 3;
+    int Flags        : 3;
     uint16_t FragOff : 13;
-    uint8_t TTL     : 8;
-    uint8_t Protocol: 8;
+    uint8_t TTL      : 8;
+    uint8_t Protocol : 8;
     uint16_t CheckSum: 16;
     uint32_t SIP     : 32;
     uint32_t DIP     : 32;
@@ -59,8 +59,8 @@ struct __attribute__((__packed__)) UdpHeader
 
 struct __attribute__((__packed__)) ZergHeader
 {
-    uint32_t Type : 4;
-    uint32_t Version    : 4;//////////
+    uint32_t Type    : 4;
+    uint32_t Version : 4;//////////
     uint32_t TotalLen: 24;
     uint32_t Sid     : 16;
     uint32_t Did     : 16;
@@ -127,9 +127,10 @@ int file_size(FILE *words)
 
 int main(void)
 {
+    FILE *words = fopen("hello.pcap", "rb");
+
     uint64_t macholder;
     uint64_t macholder2;
-    FILE *words = fopen("hello.pcap", "rb");
     //int filesize = file_size(words);
     //char *contents = read_file(filesize, words);
     struct FileHeader *fh = calloc(sizeof(*fh),1); //file header
@@ -139,33 +140,37 @@ int main(void)
     struct UdpHeader *uh = calloc(sizeof(*uh),1); //udp header
     struct ZergHeader *zh = calloc(sizeof(*zh),1); //zerg header
     //struct Message *m = calloc(sizeof(char*),1); //MESSAGE TEST
-    char *message = calloc((sizeof(char*)), 16);
+    char *message = calloc(200, 16);
     //char testpayload[sizeof((zh->TotalLen)) - 64] = {'\0'};
     char *testpayload;
+
     fread(fh, sizeof(struct FileHeader), 1, words);
     fread(ph, sizeof(struct PcapHeader), 1, words);
     fread(eh, sizeof(struct EthernetHeader), 1, words);
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
     fread(zh, sizeof(struct ZergHeader), 1, words);
-    fread(message, sizeof(char*), 1, words);
+    fread(message, htonl(zh->TotalLen) >> 8, 1, words);
     macholder = htonl(eh->Dmac);
     macholder2 = htonl(eh->Dmac2);
     macholder2 = macholder2 >> 16;
+
     printf("File Type: %x\n", (fh->FileType));
     printf("Major Version: %x\n", htonl(fh->MajorVer) >> 24);
     printf("Minor Version: %x\n", htonl(fh->MinorVer) >> 24);
     printf("Link Layer Type: %x\n\n", htonl(fh->LLT) >> 24);
     printf("Length of Data Captured: %x\n\n", htonl(ph->DataLen) >> 24);
     printf("Ethernet Type: %x\n", htonl(eh->Etype) >> 24);
-    printf("IP Version: %x\n", htonl(ih->Version) >> 24);
-    printf("IHL: %x\n", htonl(ih->IHL) >> 24);
+
+    printf("IP Version: %x\n", ih->Version);
+    printf("IHL: %x\n", ih->IHL);
     
     printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
-    printf("Zerg Type: %x\n", htonl(zh->Type));
-    printf("Sequence: %x\n", htonl(zh->Sequence));
-    printf("%x\n", htonl(zh->TotalLen));
-    printf("Destination MAC: %3x", (int)(macholder));
-    printf("%3x\n", (int)(macholder2));
+    printf("Zerg Type: %x\n", htonl(zh->Type) >> 24);
+    printf("Sequence: %d\n", htonl(zh->Sequence));
+    printf("Total Length: %d\n", htonl(zh->TotalLen) >> 8);
+    //printf("Destination MAC: %3x", (int)(macholder));
+    //printf("%3x\n", (int)(macholder2));
+    
     printf("%s\n", message);
 }
