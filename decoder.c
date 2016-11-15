@@ -3,6 +3,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <stdint.h>
+#include <arpa/inet.h>
 
 struct __attribute__((__packed__)) FileHeader //stackoverflow.com/questions/4306186/structure-padding-and-packing
 {
@@ -81,7 +82,7 @@ struct __attribute__((__packed__)) Status
     uint32_t MaxHP  : 24;
     uint32_t Type   : 8;
     uint32_t Speed  : 32;
-    uint32_t Name   : 32;
+    //uint32_t Name   : 32;
 };
 
 struct __attribute__((__packed__)) Command
@@ -147,13 +148,13 @@ int main(void)
     fread(zh, sizeof(struct ZergHeader), 1, words);
 
     /*Probably unneeded MAC handling*/
-    uint64_t macholder;
+    /*uint64_t macholder;
     uint64_t macholder2;
     macholder = htonl(eh->Dmac);
     macholder2 = htonl(eh->Dmac2);
     macholder2 = macholder2 >> 16;
-    //printf("Destination MAC: %3x", (int)(macholder));
-    //printf("%3x\n", (int)(macholder2));
+    printf("Destination MAC: %3x", (int)(macholder));
+    printf("%3x\n", (int)(macholder2));*/
 
     /*Printing Header Information*/
     printf("File Type: %x\n", (fh->FileType));
@@ -175,7 +176,6 @@ int main(void)
     if(zerg_type == 0)
     {
         char *message = calloc(200, 16);
-        char *testpayload;
         fread(message, htonl(zh->TotalLen) >> 8, 1, words);
         printf("%s\n", message);
     }
@@ -184,7 +184,15 @@ int main(void)
     {
         struct Status *st = calloc(sizeof(*st),1);
         fread(st, sizeof(struct Status), 1, words);
+        //char *name = ((htonl)(st->Name));
+        //printf("Name: %s\n", name);
+        //char *name = (char)(st->Name);
+        //int nameLen =5;
+        char *message = calloc(200, 16);
+        fread(message, htonl(zh->TotalLen) >> 8, 1, words);
+        printf("Name: %s\n", message);
         printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
+
     }
     
 }
