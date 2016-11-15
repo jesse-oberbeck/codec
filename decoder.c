@@ -127,10 +127,9 @@ int file_size(FILE *words)
 
 int main(void)
 {
-    FILE *words = fopen("hello.pcap", "rb");
+    FILE *words = fopen("status.pcap", "rb");
 
-    uint64_t macholder;
-    uint64_t macholder2;
+
     //int filesize = file_size(words);
     //char *contents = read_file(filesize, words);
     struct FileHeader *fh = calloc(sizeof(*fh),1); //file header
@@ -139,10 +138,6 @@ int main(void)
     struct Ipv4Header *ih = calloc(sizeof(*ih),1); //ip header
     struct UdpHeader *uh = calloc(sizeof(*uh),1); //udp header
     struct ZergHeader *zh = calloc(sizeof(*zh),1); //zerg header
-    //struct Message *m = calloc(sizeof(char*),1); //MESSAGE TEST
-    char *message = calloc(200, 16);
-    //char testpayload[sizeof((zh->TotalLen)) - 64] = {'\0'};
-    char *testpayload;
 
     fread(fh, sizeof(struct FileHeader), 1, words);
     fread(ph, sizeof(struct PcapHeader), 1, words);
@@ -150,11 +145,17 @@ int main(void)
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
     fread(zh, sizeof(struct ZergHeader), 1, words);
-    fread(message, htonl(zh->TotalLen) >> 8, 1, words);
+
+    /*Probably unneeded MAC handling*/
+    uint64_t macholder;
+    uint64_t macholder2;
     macholder = htonl(eh->Dmac);
     macholder2 = htonl(eh->Dmac2);
     macholder2 = macholder2 >> 16;
+    //printf("Destination MAC: %3x", (int)(macholder));
+    //printf("%3x\n", (int)(macholder2));
 
+    /*Printing Header Information*/
     printf("File Type: %x\n", (fh->FileType));
     printf("Major Version: %x\n", htonl(fh->MajorVer) >> 24);
     printf("Minor Version: %x\n", htonl(fh->MinorVer) >> 24);
@@ -164,13 +165,26 @@ int main(void)
 
     printf("IP Version: %x\n", ih->Version);
     printf("IHL: %x\n", ih->IHL);
-    
+
+    int zerg_type = htonl(zh->Type) >> 24;
     printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
-    printf("Zerg Type: %x\n", htonl(zh->Type) >> 24);
+    printf("Zerg Type: %x\n", zerg_type);
     printf("Sequence: %d\n", htonl(zh->Sequence));
     printf("Total Length: %d\n", htonl(zh->TotalLen) >> 8);
-    //printf("Destination MAC: %3x", (int)(macholder));
-    //printf("%3x\n", (int)(macholder2));
+
+    if(zerg_type == 0)
+    {
+        char *message = calloc(200, 16);
+        char *testpayload;
+        fread(message, htonl(zh->TotalLen) >> 8, 1, words);
+        printf("%s\n", message);
+    }
     
-    printf("%s\n", message);
+    if(zerg_type == 1)
+    {
+        struct Status *st = calloc(sizeof(*st),1);
+        fread(st, sizeof(struct Status), 1, words);
+        printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
+    }
+    
 }
