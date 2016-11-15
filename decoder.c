@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <stdint.h>
 
-struct FileHeader
+struct __attribute__((__packed__)) FileHeader //stackoverflow.com/questions/4306186/structure-padding-and-packing
 {
     long unsigned int FileType: 32;
     long unsigned int MajorVer: 16;
@@ -11,9 +12,10 @@ struct FileHeader
     long unsigned int GMT     : 32;
     long unsigned int Acc     : 32;
     long unsigned int MaxLen  : 32;
+    long unsigned int LLT     : 32;
 };
 
-struct PcapHeader
+struct __attribute__((__packed__)) PcapHeader
 {
     long unsigned int Epoch   : 32;
     long unsigned int EpochMil: 32;
@@ -21,22 +23,33 @@ struct PcapHeader
     long unsigned int PackLen : 32;
 };
 
-struct EthernetHeader
+struct __attribute__((__packed__)) EthernetHeader
 {
-    long unsigned int Dmac    : 48;
-    long unsigned int Smac    : 48;
+    long unsigned int Dmac    : 24;
+    long unsigned int Dmac2   : 24;
+    long unsigned int Smac    : 24;
+    long unsigned int Smac2   : 24;
     long unsigned int Etype   : 16;
 };
 
-struct Ipv4Header
+struct __attribute__((__packed__)) Ipv4Header
 {
     long unsigned int Version : 4;
     long unsigned int IHL     : 4;
     long unsigned int DSCP    : 6;
     long unsigned int ECN     : 2;
+    long unsigned int TotalLen: 16;
+    long unsigned int Ident   : 16;
+    long unsigned int Flags   : 3;
+    long unsigned int FragOff : 13;
+    long unsigned int TTL     : 8;
+    long unsigned int Protocol: 8;
+    long unsigned int CheckSum: 16;
+    long unsigned int SIP     : 32;
+    long unsigned int DIP     : 32;
 };
 
-struct UdpHeader
+struct __attribute__((__packed__)) UdpHeader
 {
     long unsigned int Sport   : 16;
     long unsigned int Dport   : 16;
@@ -44,11 +57,11 @@ struct UdpHeader
     long unsigned int CheckSum: 16;
 };
 
-struct Zerg
+struct __attribute__((__packed__)) ZergHeader
 {
     long unsigned int Version : 4;
     long unsigned int Type    : 4;//////////
-    long unsigned int TotalLen: 40;
+    long unsigned int TotalLen: 24;
     long unsigned int Sid     : 16;
     long unsigned int Did     : 16;
     long unsigned int Sequence: 32;
@@ -60,7 +73,7 @@ struct Message
     //"Not null terminated" so will have to cut off at packet len.
 };
 
-struct Status
+struct __attribute__((__packed__)) Status
 {
     long unsigned int HP     : 24;
     long unsigned int Armor  : 8;
@@ -70,14 +83,14 @@ struct Status
     long unsigned int Name   : 32;
 };
 
-struct Command
+struct __attribute__((__packed__)) Command
 {
     long unsigned int Command: 16;
     long unsigned int Param1 : 16;
     long unsigned int Param2 : 32;
 };
 
-struct GPS
+struct __attribute__((__packed__)) GPS
 {
     long unsigned int Longit : 64;
     long unsigned int Latit  : 64;
@@ -96,6 +109,8 @@ char * read_file(int filesize, FILE *words)
     return(contents);
 }
 
+//Headers are 752 total bytes for a single set.
+
 /*Get size of file*/
 int file_size(FILE *words)
 {
@@ -111,17 +126,31 @@ int file_size(FILE *words)
 
 int main(void)
 {
+    uint64_t macholder;
+    uint64_t macholder2;
     FILE *words = fopen("hello.pcap", "rb");
     //int filesize = file_size(words);
     //char *contents = read_file(filesize, words);
-    struct FileHeader *fh = malloc(sizeof(*fh));
-    struct FileHeader thing = *fh;
-    fread(fh, 32, 1, words);
-    fread(fh, 16, 1, words);
-    fread(fh, 16, 1, words);
-    fread(fh, 32, 1, words);
-    fread(fh, 32, 1, words);
-    fread(fh, 32, 1, words);
-    printf("%x\n", thing.FileType);
-    
+    struct FileHeader *fh = calloc(sizeof(*fh),1); //file header
+    struct PcapHeader *ph = calloc(sizeof(*ph),1); //packet header
+    struct EthernetHeader *eh = calloc(sizeof(*eh),1); //ethernet header
+    struct Ipv4Header *ih = calloc(sizeof(*ih),1); //ip header
+    struct UdpHeader *uh = calloc(sizeof(*uh),1); //udp header
+    struct ZergHeader *zh = calloc(sizeof(*zh),1); //zerg header
+    //char testpayload[sizeof((zh->TotalLen)) - 64] = {'\0'};
+    char *testpayload;
+    fread(fh, sizeof(struct FileHeader), 1, words);
+    fread(ph, sizeof(struct PcapHeader), 1, words);
+    fread(eh, sizeof(struct EthernetHeader), 1, words);
+    fread(ih, sizeof(struct Ipv4Header), 1, words);
+    fread(uh, sizeof(struct UdpHeader), 1, words);
+    fread(zh, sizeof(struct ZergHeader), 1, words);
+    //fread(testpayload, sizeof(char*), 1, words);
+    macholder = eh->Dmac;
+    macholder2 = eh->Dmac2;
+    printf("%x\n", htonl(zh->Sequence));
+    printf("%x\n", htonl(zh->TotalLen));
+    printf("%x", (int)(htonl)(macholder));
+    printf("%x\n", (int)(htonl)(macholder2));
+    //printf("%s\n", testpayload);
 }
