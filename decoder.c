@@ -132,7 +132,7 @@ int file_size(FILE *words)
 
 int main(void)
 {
-    FILE *words = fopen("status.pcap", "rb");
+    FILE *words = fopen("gps.pcap", "rb");
 
 
     //int filesize = file_size(words);
@@ -165,23 +165,24 @@ int main(void)
     //printf("Major Version: %x\n", htonl(fh->MajorVer) >> 24);
     //printf("Minor Version: %x\n", htonl(fh->MinorVer) >> 24);
     //printf("Link Layer Type: %x\n\n", htonl(fh->LLT) >> 24);
-    printf("Length of Data Captured: %x\n\n", htonl(ph->DataLen) >> 24);
+    printf("Length of Data Captured: %d\n\n", htonl(ph->DataLen) >> 24);
     //printf("Ethernet Type: %x\n", htonl(eh->Etype) >> 24);
 
     //printf("IP Version: %x\n", ih->Version);
     //printf("IHL: %x\n", ih->IHL);
 
     int zerg_type = htonl(zh->Type) >> 24;
+    int total_len = htonl(zh->TotalLen) >> 8;
     printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
     printf("Zerg Type: %d\n", zerg_type);
     printf("Sequence: %d\n", htonl(zh->Sequence));
-    printf("Total Length: %d\n", htonl(zh->TotalLen) >> 8);
+    printf("Total Length: %d\n", total_len);
     printf("Destination ID: %d\n", htonl(zh->Did) >> 16);
     printf("Source ID: %d\n", htonl(zh->Sid) >> 16);
 
     if(zerg_type == 0)
     {
-        char *message = calloc(200, 16);
+        char *message = calloc(total_len,1);
         fread(message, htonl(zh->TotalLen) >> 8, 1, words);
         printf("%s\n", message);
         free(message);
@@ -195,7 +196,7 @@ int main(void)
         //printf("Name: %s\n", name);
         //char *name = (char)(st->Name);
         //int nameLen =5;
-        char *message = calloc(200, 16);
+        char *message = calloc(total_len,1);
         fread(message, htonl(zh->TotalLen) >> 8, 1, words);
         printf("Name: %s\n", message);
         printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
@@ -235,7 +236,53 @@ int main(void)
     {
         struct Command *cm = calloc(sizeof(*cm),1);
         fread(cm, sizeof(struct Command), 1, words);
+        int command = htonl(cm->Command);
+        switch(command)
+        {
+            case(0):
+                printf("GET_STATUS\n");
+                break;
+            case(1):
+                printf("GOTO\n");
+                break;
+            case(2):
+                printf("GET_GPS\n");
+                break;
+            case(3):
+                printf("RESERVED\n");
+                break;
+            case(4):
+                printf("RETURN\n");
+                break;
+            case(5):
+                printf("SET_GROUP\n");
+                break;
+            case(6):
+                printf("STOP\n");
+                break;
+            case(7):
+                printf("REPEAT\n");
+                break;
+        }
+        printf("P1: %d\n", htonl(cm->Param1));
+        if(command % 2 == 0)
+        {
+            cm = realloc(cm, sizeof(cm) - 6);
+        }
+        else
+        {
+            printf("P2: %d\n", htonl(cm->Param2));
+        }
+        
         free(cm);
+    }
+    
+        if(zerg_type == 3)
+    {
+        struct GPS *gps = calloc(sizeof(*gps),1);
+        fread(gps, sizeof(struct GPS), 1, words);
+        //int command = htonl(cm->Command);
+        printf("Got GPS Packet.\n");
     }
     
     //Free all the things!
