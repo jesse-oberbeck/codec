@@ -4,33 +4,35 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <arpa/inet.h>
+#include <math.h>
+#include <inttypes.h>
 
 struct __attribute__((__packed__)) FileHeader //stackoverflow.com/questions/4306186/structure-padding-and-packing
 {
-    uint32_t FileType: 32;
-    uint32_t MajorVer: 16;
-    uint32_t MinorVer: 16;
-    uint32_t GMT     : 32;
-    uint32_t Acc     : 32;
-    uint32_t MaxLen  : 32;
-    uint32_t LLT     : 32;
+    int FileType: 32;
+    int MajorVer: 16;
+    int MinorVer: 16;
+    int GMT     : 32;
+    int Acc     : 32;
+    int MaxLen  : 32;
+    int LLT     : 32;
 };
 
 struct __attribute__((__packed__)) PcapHeader
 {
-    uint32_t Epoch   : 32;
-    uint32_t EpochMil: 32;
-    uint32_t DataLen : 32;
-    uint32_t PackLen : 32;
+    int Epoch   : 32;
+    int EpochMil: 32;
+    int DataLen : 32;
+    int PackLen : 32;
 };
 
 struct __attribute__((__packed__)) EthernetHeader
 {
-    uint32_t Dmac    : 32;
-    uint16_t Dmac2   : 16;
-    uint32_t Smac    : 32;
-    uint16_t Smac2   : 16;
-    uint32_t Etype   : 16;
+    int Dmac    : 32;
+    int Dmac2   : 16;
+    int Smac    : 32;
+    int Smac2   : 16;
+    int Etype   : 16;
 };
 
 struct __attribute__((__packed__)) Ipv4Header
@@ -39,33 +41,33 @@ struct __attribute__((__packed__)) Ipv4Header
     int Version      : 4;
     int DSCP         : 6;
     int ECN          : 2;
-    uint16_t TotalLen: 16;
-    uint16_t Ident   : 16;
+    int TotalLen: 16;
+    int Ident   : 16;
     int Flags        : 3;
-    uint16_t FragOff : 13;
-    uint8_t TTL      : 8;
-    uint8_t Protocol : 8;
-    uint16_t CheckSum: 16;
-    uint32_t SIP     : 32;
-    uint32_t DIP     : 32;
+    int FragOff : 13;
+    int TTL      : 8;
+    int Protocol : 8;
+    int CheckSum: 16;
+    int SIP     : 32;
+    int DIP     : 32;
 };
 
 struct __attribute__((__packed__)) UdpHeader
 {
-    uint32_t Sport   : 16;
-    uint32_t Dport   : 16;
-    uint32_t Len     : 16;
-    uint32_t CheckSum: 16;
+    int Sport   : 16;
+    int Dport   : 16;
+    int Len     : 16;
+    int CheckSum: 16;
 };
 
 struct __attribute__((__packed__)) ZergHeader
 {
-    uint32_t Type    : 4;
-    uint32_t Version : 4;//////////
-    uint32_t TotalLen: 24;
-    uint32_t Sid     : 16;
-    uint32_t Did     : 16;
-    uint32_t Sequence: 32;
+    int Type    : 4;
+    int Version : 4;//////////
+    int TotalLen: 24;
+    int Sid     : 16;
+    int Did     : 16;
+    int Sequence: 32;
 };
 
 struct Message
@@ -77,29 +79,31 @@ struct Message
 
 struct __attribute__((__packed__)) Status
 {
-    uint32_t HP     : 24;
-    uint32_t Armor  : 8;
-    uint32_t MaxHP  : 24;
-    uint32_t Type   : 8;
-    uint32_t Speed  : 32;
+    int HP     : 24;
+    int Armor  : 8;
+    int MaxHP  : 24;
+    int Type   : 8;
+    int Speed  : 32;
     //uint32_t Name   : 32;
 };
 
 struct __attribute__((__packed__)) Command
 {
-    uint32_t Command: 16;
-    uint32_t Param1 : 16;
-    uint32_t Param2 : 32;
+    int Command: 16;
+    int Param1 : 16;
+    int Param2 : 32;
 };
 
 struct __attribute__((__packed__)) GPS
 {
-    uint64_t Longit : 64;
-    uint64_t Latit  : 64;
-    uint32_t Altit  : 32;
-    uint32_t Bearing: 32;
-    uint32_t Speed  : 32;
-    uint32_t Acc    : 32;
+    int Longit : 32;
+    int Longit2: 32;
+    int Latit  : 32;
+    int Latit2 : 32;
+    int Altit  : 32;
+    int Bearing: 32;
+    int Speed  : 32;
+    int Acc    : 32;
 };
 
 /*Read in file.*/
@@ -156,28 +160,31 @@ int main(void)
     printf("Destination MAC: %3x", (int)(macholder));
     printf("%3x\n", (int)(macholder2));*/
 
-    /*Printing Header Information*/
-    printf("File Type: %x\n", (fh->FileType));
-    printf("Major Version: %x\n", htonl(fh->MajorVer) >> 24);
-    printf("Minor Version: %x\n", htonl(fh->MinorVer) >> 24);
-    printf("Link Layer Type: %x\n\n", htonl(fh->LLT) >> 24);
+    /*  Printing Header Information  */
+    //printf("File Type: %x\n", (fh->FileType));
+    //printf("Major Version: %x\n", htonl(fh->MajorVer) >> 24);
+    //printf("Minor Version: %x\n", htonl(fh->MinorVer) >> 24);
+    //printf("Link Layer Type: %x\n\n", htonl(fh->LLT) >> 24);
     printf("Length of Data Captured: %x\n\n", htonl(ph->DataLen) >> 24);
-    printf("Ethernet Type: %x\n", htonl(eh->Etype) >> 24);
+    //printf("Ethernet Type: %x\n", htonl(eh->Etype) >> 24);
 
-    printf("IP Version: %x\n", ih->Version);
-    printf("IHL: %x\n", ih->IHL);
+    //printf("IP Version: %x\n", ih->Version);
+    //printf("IHL: %x\n", ih->IHL);
 
     int zerg_type = htonl(zh->Type) >> 24;
     printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
-    printf("Zerg Type: %x\n", zerg_type);
+    printf("Zerg Type: %d\n", zerg_type);
     printf("Sequence: %d\n", htonl(zh->Sequence));
     printf("Total Length: %d\n", htonl(zh->TotalLen) >> 8);
+    printf("Destination ID: %d\n", htonl(zh->Did) >> 16);
+    printf("Source ID: %d\n", htonl(zh->Sid) >> 16);
 
     if(zerg_type == 0)
     {
         char *message = calloc(200, 16);
         fread(message, htonl(zh->TotalLen) >> 8, 1, words);
         printf("%s\n", message);
+        free(message);
     }
     
     if(zerg_type == 1)
@@ -192,7 +199,51 @@ int main(void)
         fread(message, htonl(zh->TotalLen) >> 8, 1, words);
         printf("Name: %s\n", message);
         printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
+        printf("Type: %d\n", htonl(st->Type) >> 24);
+        printf("Armor: %d\n", htonl(st->Armor) >> 8);
+        
+        /* I'm abandoning the manual method here. Seemed doable until the
+        Mantissa portion. Also read an easier method, which will be used
+        instead, and is the suggested method according to one comment.
+        "Aliasing through pointer conversion is not supported by the C
+        standard, and may be troublesome in some compilers."*/
+        /*
+        int bin_speed = htonl(st->Speed);
+        int speed_sign = bin_speed >> 31;
+        int that_weird_mantissa_thing = bin_speed & 0x7FFFFF;
+        int exponent = (bin_speed >> 23) - 127;
+        double speed =  pow(2, exponent) * that_weird_mantissa_thing;
+        printf("sign: %d mantissa: %d exponent: %d\n", speed_sign, that_weird_mantissa_thing, exponent);
+        */
+        
+        int bin_speed = htonl(st->Speed);
+        printf("bin_speed: %x\n", bin_speed);
+        union{float f; uint32_t u;} converter; //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
+        converter.u = bin_speed;
+        double speed = converter.f;
+        printf("Max Speed: %fm/s\n", speed);
+        converter.f = bin_speed;
+        int notspeed = converter.u;
+        printf("and back: %x\n", notspeed);
+        free(st);
+        free(message);
+        
 
     }
     
+        if(zerg_type == 2)
+    {
+        struct Command *cm = calloc(sizeof(*cm),1);
+        fread(cm, sizeof(struct Command), 1, words);
+        free(cm);
+    }
+    
+    //Free all the things!
+    fclose(words);
+    free(fh);
+    free(ph);
+    free(eh);
+    free(ih);
+    free(uh);
+    free(zh);
 }
