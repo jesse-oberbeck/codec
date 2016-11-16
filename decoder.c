@@ -1,3 +1,4 @@
+#define _BSD_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,8 +7,6 @@
 #include <arpa/inet.h>
 #include <math.h>
 #include <inttypes.h>
-#define _DEFAULT_SOURCE
-#define _BSD_SOURCE
 #include <endian.h>
 
 struct __attribute__((__packed__)) FileHeader //stackoverflow.com/questions/4306186/structure-padding-and-packing
@@ -302,16 +301,34 @@ int main(void)
         */
 
         //printf("bin_speed: %x\n", bin_speed);
-        double latitude = be64toh(gps->Latit);
-        double longitude = be64toh(gps->Longit);
-        union{float f; uint64_t u;} converter; //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
+        unsigned long long latitude = be64toh(gps->Latit);
+        printf("sizeof: %zd\n", sizeof(latitude));
+        printf("lat bytes: %llx\n", latitude);
+        unsigned long long longitude = be64toh(gps->Longit);
+        union{double f; uint64_t u;} converter; //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
         converter.u = latitude;
-        latitude = converter.f;
+        double latitude2 = converter.f;
         converter.u = longitude;
-        longitude = converter.f;
-        printf("latitude: %f\n", latitude);
-        printf("longitude: %f\n", longitude);
-        printf("Got GPS Packet.\n");
+        double longitude2 = converter.f;
+        if(latitude2 > 0)
+        {
+            printf("latitude: %.9f deg. N\n", latitude2);
+        }
+        else
+        {
+            printf("latitude: %.9f deg. S\n", fabs(latitude2));
+        }
+        
+        if(longitude2 > 0)
+        {
+            printf("longitude: %.9f deg. E\n", longitude2);
+        }
+        else
+        {
+            printf("longitude: %.9f deg. W\n", fabs(longitude2));
+        }
+        
+        //printf("longitude: %f\n", longitude2);
     }
     
     //Free all the things!
