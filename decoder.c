@@ -6,6 +6,9 @@
 #include <arpa/inet.h>
 #include <math.h>
 #include <inttypes.h>
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
+#include <endian.h>
 
 struct __attribute__((__packed__)) FileHeader //stackoverflow.com/questions/4306186/structure-padding-and-packing
 {
@@ -96,10 +99,8 @@ struct __attribute__((__packed__)) Command
 
 struct __attribute__((__packed__)) GPS
 {
-    int Longit : 32;
-    int Longit2: 32;
-    int Latit  : 32;
-    int Latit2 : 32;
+    uint64_t Longit;
+    uint64_t Latit;
     int Altit  : 32;
     int Bearing: 32;
     int Speed  : 32;
@@ -195,9 +196,10 @@ int main(void)
         //char *name = ((htonl)(st->Name));
         //printf("Name: %s\n", name);
         //char *name = (char)(st->Name);
-        //int nameLen =5;
-        char *message = calloc(total_len,1);
-        fread(message, htonl(zh->TotalLen) >> 8, 1, words);
+        int nameLen = (htonl(zh->TotalLen) >> 8) - 24;
+        //printf("namelen: %d\n", nameLen);
+        char *message = calloc(nameLen, 1);
+        fread(message, nameLen, 1, words);
         printf("Name: %s\n", message);
         printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
         printf("Type: %d\n", htonl(st->Type) >> 24);
@@ -218,14 +220,14 @@ int main(void)
         */
         
         int bin_speed = htonl(st->Speed);
-        printf("bin_speed: %x\n", bin_speed);
+        //printf("bin_speed: %x\n", bin_speed);
         union{float f; uint32_t u;} converter; //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
         converter.u = bin_speed;
         double speed = converter.f;
         printf("Max Speed: %fm/s\n", speed);
         converter.f = bin_speed;
-        int notspeed = converter.u;
-        printf("and back: %x\n", notspeed);
+        //int notspeed = converter.u;
+        //printf("and back: %x\n", notspeed);
         free(st);
         free(message);
         
@@ -281,7 +283,34 @@ int main(void)
     {
         struct GPS *gps = calloc(sizeof(*gps),1);
         fread(gps, sizeof(struct GPS), 1, words);
-        //int command = htonl(cm->Command);
+        /*//Didn't work, but I still like the idea.
+        uint64_t intbuf = 0;
+        int bin_latitude = htonl(gps->Latit);
+        int bin_latitude2 = htonl(gps->Latit2);
+        intbuf += bin_latitude2;
+        intbuf = intbuf << 32;
+        intbuf += bin_latitude;
+        uint64_t combined_lat = intbuf;
+        
+        intbuf = 0;
+        int bin_longitude = htonl(gps->Longit);
+        int bin_longitude2 = htonl(gps->Longit2);
+        intbuf += bin_longitude;
+        intbuf = intbuf << 32;
+        intbuf += bin_longitude2;
+        uint64_t combined_long = intbuf;
+        */
+
+        //printf("bin_speed: %x\n", bin_speed);
+        double latitude = be64toh(gps->Latit);
+        double longitude = be64toh(gps->Longit);
+        union{float f; uint64_t u;} converter; //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
+        converter.u = latitude;
+        latitude = converter.f;
+        converter.u = longitude;
+        longitude = converter.f;
+        printf("latitude: %f\n", latitude);
+        printf("longitude: %f\n", longitude);
         printf("Got GPS Packet.\n");
     }
     
