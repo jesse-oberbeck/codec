@@ -8,6 +8,7 @@
 #include <math.h>
 #include <inttypes.h>
 #include <endian.h>
+#include <unistd.h>
 
 struct __attribute__((__packed__)) FileHeader //stackoverflow.com/questions/4306186/structure-padding-and-packing
 {
@@ -106,50 +107,23 @@ struct __attribute__((__packed__)) GPS
     int Acc    : 32;
 };
 
-/*Read in file.*/
-char * read_file(int filesize, FILE *words)
-{
-    char *contents = malloc(filesize);
-    fread(contents, sizeof(char), filesize, words);
-    fclose(words);
-    return(contents);
-}
-
 //Headers are 752 total bytes for a single set.
 
-/*Get size of file*/
-int file_size(FILE *words)
+void process_file(FILE *words)
 {
-
-    long start = ftell(words);
-    fseek(words, 0, SEEK_END);
-    long end = ftell(words);
-    int filesize = (end - start) + 1;
-    printf("\nfilesize: %i\n", filesize);
-    fseek(words, 0, SEEK_SET);
-    return(filesize);
-}
-
-int main(void)
-{
-    FILE *words = fopen("gps.pcap", "rb");
-
-
-    //int filesize = file_size(words);
-    //char *contents = read_file(filesize, words);
     struct FileHeader *fh = calloc(sizeof(*fh),1); //file header
     struct PcapHeader *ph = calloc(sizeof(*ph),1); //packet header
     struct EthernetHeader *eh = calloc(sizeof(*eh),1); //ethernet header
     struct Ipv4Header *ih = calloc(sizeof(*ih),1); //ip header
     struct UdpHeader *uh = calloc(sizeof(*uh),1); //udp header
-    struct ZergHeader *zh = calloc(sizeof(*zh),1); //zerg header
+    
 
     fread(fh, sizeof(struct FileHeader), 1, words);
     fread(ph, sizeof(struct PcapHeader), 1, words);
     fread(eh, sizeof(struct EthernetHeader), 1, words);
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
-    fread(zh, sizeof(struct ZergHeader), 1, words);
+    
 
     /*Probably unneeded MAC handling*/
     /*uint64_t macholder;
@@ -167,10 +141,28 @@ int main(void)
     //printf("Link Layer Type: %x\n\n", htonl(fh->LLT) >> 24);
     printf("Length of Data Captured: %d\n\n", htonl(ph->DataLen) >> 24);
     //printf("Ethernet Type: %x\n", htonl(eh->Etype) >> 24);
-
     //printf("IP Version: %x\n", ih->Version);
     //printf("IHL: %x\n", ih->IHL);
 
+
+    free(fh);
+    free(ph);
+    free(eh);
+    free(ih);
+    free(uh);
+
+    return;
+}
+
+struct Container
+{
+    int zerg_type;
+    int total_len;
+};
+
+void process_zerg_header(FILE *words, struct ZergHeader *zh, struct Container *c)
+{
+    fread(zh, sizeof(struct ZergHeader), 1, words);
     int zerg_type = htonl(zh->Type) >> 24;
     int total_len = htonl(zh->TotalLen) >> 8;
     printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
@@ -179,6 +171,41 @@ int main(void)
     printf("Total Length: %d\n", total_len);
     printf("Destination ID: %d\n", htonl(zh->Did) >> 16);
     printf("Source ID: %d\n", htonl(zh->Sid) >> 16);
+    c->zerg_type = zerg_type;
+    c->total_len = total_len;
+    return;
+}
+
+/*Get end of file*/
+int file_size(FILE *words)
+{
+
+    fseek(words, 0, SEEK_END);
+    long end = ftell(words);
+    fseek(words, 0, SEEK_SET);
+    return(end);
+}
+
+int main(int argc, char *argv[])
+{
+    if( !(argc > 1) && !(access(argv[1], F_OK)) )
+    {
+        perror("Invalid file Name.");
+        return(1);
+    }
+
+    char *file = argv[1];
+    FILE *words = fopen(file, "rb");
+    int eof = file_size(words);
+    process_file(words);
+
+    struct ZergHeader *zh = calloc(sizeof(*zh), 1); //zerg header
+    struct Container *c = calloc(sizeof(*c), 1);
+    
+    while(ftell(words) != eof){
+    process_zerg_header(words, zh, c);
+    int zerg_type = c->zerg_type;
+    int total_len = c->total_len;
 
     if(zerg_type == 0)
     {
@@ -212,10 +239,10 @@ int main(void)
         /*
         int bin_speed = htonl(st->Speed);
         int speed_sign = bin_speed >> 31;
-        int that_weird_mantissa_thing = bin_speed & 0x7FFFFF;
+        int mantissa = bin_speed & 0x7FFFFF;
         int exponent = (bin_speed >> 23) - 127;
-        double speed =  pow(2, exponent) * that_weird_mantissa_thing;
-        printf("sign: %d mantissa: %d exponent: %d\n", speed_sign, that_weird_mantissa_thing, exponent);
+        double speed =  pow(2, exponent) * mantissa;
+        printf("sign: %d mantissa: %d exponent: %d\n", speed_sign, mantissa, exponent);
         */
         
         int bin_speed = htonl(st->Speed);
@@ -330,13 +357,8 @@ int main(void)
         
         //printf("longitude: %f\n", longitude2);
     }
-    
-    //Free all the things!
-    fclose(words);
-    free(fh);
-    free(ph);
-    free(eh);
-    free(ih);
-    free(uh);
+    }
     free(zh);
+    fclose(words);
+
 }
