@@ -30,7 +30,10 @@ process_file(
     fread(uh, sizeof(struct UdpHeader), 1, words);
 
     /*  Printing Header Information  */
-    printf("Length of Data Captured: %d\n\n", htonl(ph->DataLen) >> 24);
+    int length_of_data = htonl(ph->DataLen) >> 24;
+    if(length_of_data == 0){
+    printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
+    }
 
     free(fh);
     free(ph);
@@ -115,6 +118,22 @@ convert_64(
     return (result);
 }
 
+const char * translate_type(int type)
+{
+    switch(type)
+    {
+    case(0):
+        return("Overlord");
+    case(1):
+        return("Larva");
+    case(2):
+        return("Cerebrate");
+    case(6):
+        return("Zergling");
+    }
+    return("Invalid");
+}
+
 int
 main(
     int argc,
@@ -167,7 +186,12 @@ main(
             fread(message, nameLen, 1, words);
             printf("Name: %s\n", message);
             printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
-            printf("Type: %d\n", htonl(st->Type) >> 24);
+            int unit_type_bin = htonl(st->Type) >> 24;
+            //const char *unit_type = translate_type(unit_type_bin);
+            
+            const char *type_array[] = {"Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone", "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk", "Mutalisk", "Defiler", "Devourer"};
+            
+            printf("Type: %s\n", type_array[unit_type_bin]);
             printf("Armor: %d\n", htonl(st->Armor) >> 8);
 
             int bin_speed = htonl(st->Speed);
