@@ -45,9 +45,18 @@ main(int argc,char *argv[])
 
     struct ZergHeader *zh = calloc(sizeof(*zh), 1);
     struct Container *c = calloc(sizeof(*c), 1);
+
+
     while(current_pos != end_pos)
     {
         result = process_file(words);
+        if(result < 0)
+        {
+            free(zh);
+            free(c);
+            fclose(words);
+            return(0);
+        }
 
         process_zerg_header(words, zh, c);
         int zerg_type = c->zerg_type;
@@ -63,7 +72,8 @@ main(int argc,char *argv[])
         }
 
         if (zerg_type == 1)
-        {
+        {   zerg1(words, zh);
+            /*
             struct Status *st = calloc(sizeof(*st), 1);
 
             fread(st, sizeof(struct Status), 1, words);
@@ -88,7 +98,7 @@ main(int argc,char *argv[])
 
             printf("Max Speed: %fm/s\n", speed);
             free(st);
-            free(message);
+            free(message);*/
 
         }
 
@@ -97,7 +107,8 @@ main(int argc,char *argv[])
             struct Command *cm = calloc(sizeof(*cm), 1);
 
             fread(cm, sizeof(struct Command), 1, words);
-            int command = htonl(cm->Command);
+            long command = htonl(cm->Command) >> 16;
+            //printf("Command hex: %x\n", command);
 
             switch (command)
             {
@@ -137,6 +148,8 @@ main(int argc,char *argv[])
                 int *P2 = calloc(4,1);
                 fread(P2, 4, 1, words);
                 printf("P2: %d\n", *P2);
+                free(P1);
+                free(P2);
             }
 
             free(cm);
@@ -187,14 +200,10 @@ main(int argc,char *argv[])
             printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
             printf("Accuracy: %.0fm\n", accuracy);
         }
-        if(result <= 0)
-        {
-            return(0);
-        }
+
     current_pos = ftell(words);
-    int padding = result;
-    //printf("RESULT: %d\n", padding);
-    fseek(words, padding, SEEK_CUR);
+    //printf("RESULT: %d\n", result);
+    fseek(words, result, SEEK_CUR);
     puts("");
     }
     free(zh);

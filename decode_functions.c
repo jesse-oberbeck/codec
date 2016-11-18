@@ -1,5 +1,3 @@
-
-
 #define _BSD_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,11 +21,8 @@ process_file(
 
 
 
-    int fail = fread(ph, sizeof(struct PcapHeader), 1, words);
-    if(fail == 0)
-    {
-        return(-1);
-    }
+    fread(ph, sizeof(struct PcapHeader), 1, words);
+
     fread(eh, sizeof(struct EthernetHeader), 1, words);
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
@@ -35,8 +30,9 @@ process_file(
     /*  Printing Header Information  */
     int length_of_data = htonl(ph->DataLen) >> 24;
     int ip_len = htonl(ih->TotalLen) >> 16;
-    if(length_of_data == 0){
-    printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
+    if(length_of_data <= 0){
+        //printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
+        return(-1);
     }
 
     free(ph);
@@ -47,6 +43,35 @@ process_file(
     return(length_of_data - ip_len - 14);
 }
 
+void zerg1(FILE *words, struct ZergHeader *zh)
+{
+    struct Status *st = calloc(sizeof(*st), 1);
+
+    fread(st, sizeof(struct Status), 1, words);
+    int nameLen = (htonl(zh->TotalLen) >> 8) - 24;
+
+    printf("namelen: %d\n", nameLen);
+    char *message = calloc(nameLen, 1);
+
+    fread(message, nameLen, 1, words);
+    printf("Name: %s\n", message);
+    printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
+    int unit_type_bin = htonl(st->Type) >> 24;
+    //const char *unit_type = translate_type(unit_type_bin);
+    
+    const char *type_array[] = {"Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone", "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk", "Mutalisk", "Defiler", "Devourer"};
+    
+    printf("Type: %s\n", type_array[unit_type_bin]);
+    printf("Armor: %d\n", htonl(st->Armor) >> 8);
+
+    int bin_speed = htonl(st->Speed);
+    double speed = convert_32(bin_speed);
+
+    printf("Max Speed: %fm/s\n", speed);
+    free(st);
+    free(message);
+
+}
 
 
 void
