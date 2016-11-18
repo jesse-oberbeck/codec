@@ -12,36 +12,45 @@
 
 //Headers are 752 total bytes for a single set.
 
-void
+int
 process_file(
     FILE * words)
 {
-    struct FileHeader *fh = calloc(sizeof(*fh), 1); //file header
-    struct PcapHeader *ph = calloc(sizeof(*ph), 1); //packet header
+
+    struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
     struct EthernetHeader *eh = calloc(sizeof(*eh), 1); //ethernet header
     struct Ipv4Header *ih = calloc(sizeof(*ih), 1); //ip header
     struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
 
 
-    fread(fh, sizeof(struct FileHeader), 1, words);
-    fread(ph, sizeof(struct PcapHeader), 1, words);
+
+    int fail = fread(ph, sizeof(struct PcapHeader), 1, words);
+    if(fail == 0)
+    {
+        return(-1);
+    }
+    
     fread(eh, sizeof(struct EthernetHeader), 1, words);
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
 
     /*  Printing Header Information  */
     int length_of_data = htonl(ph->DataLen) >> 24;
+    int ip_len = htonl(ih->TotalLen) >> 16;
+    printf("%d - %d \n", length_of_data, ip_len);
     if(length_of_data == 0){
     printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
     }
+    //int eop = ph->PackLen;////////////////////
+    //printf("EOP: %d\n", eop);
 
-    free(fh);
+
     free(ph);
     free(eh);
     free(ih);
     free(uh);
 
-    return;
+    return(length_of_data - ip_len - 14);
 }
 
 struct Container
@@ -60,10 +69,10 @@ process_zerg_header(
     int zerg_type = htonl(zh->Type) >> 24;
     int total_len = htonl(zh->TotalLen) >> 8;
 
-    printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
-    printf("Zerg Type: %d\n", zerg_type);
+    //printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
+    printf("Message Type: %d\n", zerg_type);
     printf("Sequence: %d\n", htonl(zh->Sequence));
-    printf("Total Length: %d\n", total_len);
+    printf("Zerg Packet Length: %d\n", total_len);
     printf("Destination ID: %d\n", htonl(zh->Did) >> 16);
     printf("Source ID: %d\n", htonl(zh->Sid) >> 16);
     c->zerg_type = zerg_type;
@@ -147,28 +156,42 @@ main(
     else if (access(argv[1], F_OK) == -1)
     {
         fprintf(stderr, "Invalid file name.\n");
+        return(1);
     }
 
     char *file = argv[1];
     FILE *words = fopen(file, "rb");
-    int eof = file_size(words);
+    int result = 0;
+    int end_pos = file_size(words);
+    //Reads in file header once.
+    struct FileHeader *fh = calloc(sizeof(*fh), 1); //file header
+    fread(fh, sizeof(struct FileHeader), 1, words);
+    free(fh);
 
-    process_file(words);
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+    int current_pos = ftell(words);
 
     struct ZergHeader *zh = calloc(sizeof(*zh), 1);
     struct Container *c = calloc(sizeof(*c), 1);
-
-    while (ftell(words) != eof)
+    while(current_pos != end_pos)
     {
+        puts("LOOP");
+        result = process_file(words);
+        if(result <= 0)
+        {
+            printf("END\n");
+            return(0);
+        }
         process_zerg_header(words, zh, c);
         int zerg_type = c->zerg_type;
-        int total_len = c->total_len;
-
+        int total_len = (htonl(zh->TotalLen) >> 8) - 12;
+        printf("namelen: %d\n", total_len);
         if (zerg_type == 0)
         {
             char *message = calloc(total_len, 1);
 
-            fread(message, htonl(zh->TotalLen) >> 8, 1, words);
+            fread(message, total_len, 1, words);
             printf("%s\n", message);
             free(message);
         }
@@ -240,7 +263,9 @@ main(
             printf("P1: %d\n", htonl(cm->Param1));
             if (command % 2 == 0)
             {
-                cm = realloc(cm, sizeof(cm) - 6);
+                cm = realloc(cm, sizeof(cm) - 4);
+                //fseek(words, -4, SEEK_CUR);
+
             }
             else
             {
@@ -295,6 +320,11 @@ main(
             printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
             printf("Accuracy: %.0fm\n", accuracy);
         }
+    current_pos = ftell(words);
+    int padding = result;
+    printf("RESULT: %d\n", padding);
+    fseek(words, padding, SEEK_CUR);
+    puts("");
     }
     free(zh);
     free(c);

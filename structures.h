@@ -54,7 +54,7 @@ struct __attribute__ ((__packed__)) UdpHeader
 struct __attribute__ ((__packed__)) ZergHeader
 {
     int Type:4;
-    int Version:4;              //////////
+    int Version:4;
     int TotalLen:24;
     int Sid:16;
     int Did:16;
