@@ -1,10 +1,10 @@
-.DEFAULT_GOAL := decoder#found at stackoverflow.com/questions/2057689/how-make-app-knows-default-target-to-build-if-no-target-is-specified
+.DEFAULT_GOAL := decoder #found at stackoverflow.com/questions/2057689/how-make-app-knows-default-target-to-build-if-no-target-is-specified
 
-TARGET=decoder encoder decoder.o
+TARGET=decoder encoder
 
 CPPFLAGS+=-Wall -Wextra -Wpedantic -Wwrite-strings -Wstack-usage=1024 -Wfloat-equal -Waggregate-return -Winline
 
-decoder.o: structures.h
+decoder: decode_functions.o
 
 CFLAGS+=-std=c11 -g
 

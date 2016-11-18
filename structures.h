@@ -1,3 +1,11 @@
+
+struct Container
+{
+    int zerg_type;
+    int total_len;
+};
+
+
 struct __attribute__ ((__packed__)) FileHeader  //stackoverflow.com/questions/4306186/structure-padding-and-packing
 {
     int FileType:32;
@@ -95,4 +103,26 @@ struct __attribute__ ((__packed__)) GPS
     int Speed:32;
     int Acc:32;
 };
+
+int
+process_file(
+    FILE * words);
+    
+void
+process_zerg_header(
+    FILE * words,
+    struct ZergHeader *zh,
+    struct Container *c);
+
+int
+file_size(
+    FILE * words);
+
+float
+convert_32(
+    uint32_t num);
+
+double
+convert_64(
+    uint64_t num);
 
