@@ -82,8 +82,8 @@ struct __attribute__ ((__packed__)) Status
 struct __attribute__ ((__packed__)) Command
 {
     int Command:16;
-    int Param1:16;
-    int Param2:32;
+    //int Param1:16;
+    //int Param2:32;
 };
 
 struct __attribute__ ((__packed__)) GPS

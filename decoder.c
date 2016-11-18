@@ -29,7 +29,6 @@ process_file(
     {
         return(-1);
     }
-    
     fread(eh, sizeof(struct EthernetHeader), 1, words);
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
@@ -37,13 +36,9 @@ process_file(
     /*  Printing Header Information  */
     int length_of_data = htonl(ph->DataLen) >> 24;
     int ip_len = htonl(ih->TotalLen) >> 16;
-    printf("%d - %d \n", length_of_data, ip_len);
     if(length_of_data == 0){
     printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
     }
-    //int eop = ph->PackLen;////////////////////
-    //printf("EOP: %d\n", eop);
-
 
     free(ph);
     free(eh);
@@ -176,13 +171,8 @@ main(
     struct Container *c = calloc(sizeof(*c), 1);
     while(current_pos != end_pos)
     {
-        puts("LOOP");
         result = process_file(words);
-        if(result <= 0)
-        {
-            printf("END\n");
-            return(0);
-        }
+
         process_zerg_header(words, zh, c);
         int zerg_type = c->zerg_type;
         int total_len = (htonl(zh->TotalLen) >> 8) - 12;
@@ -260,16 +250,17 @@ main(
                 printf("REPEAT\n");
                 break;
             }
-            printf("P1: %d\n", htonl(cm->Param1));
-            if (command % 2 == 0)
-            {
-                cm = realloc(cm, sizeof(cm) - 4);
-                //fseek(words, -4, SEEK_CUR);
+            //printf("P1: %d\n", htonl(cm->Param1));
+            if (!(command % 2 == 0))
 
-            }
-            else
+
             {
-                printf("P2: %d\n", htonl(cm->Param2));
+                int *P1 = calloc(2,1);
+                fread(P1, 2, 1, words);
+                printf("P1: %d\n", *P1);
+                int *P2 = calloc(4,1);
+                fread(P2, 4, 1, words);
+                printf("P2: %d\n", *P2);
             }
 
             free(cm);
@@ -320,9 +311,13 @@ main(
             printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
             printf("Accuracy: %.0fm\n", accuracy);
         }
+            if(result <= 0)
+        {
+            return(0);
+        }
     current_pos = ftell(words);
     int padding = result;
-    printf("RESULT: %d\n", padding);
+    //printf("RESULT: %d\n", padding);
     fseek(words, padding, SEEK_CUR);
     puts("");
     }
