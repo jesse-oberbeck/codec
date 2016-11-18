@@ -74,6 +74,105 @@ void zerg1(FILE *words, struct ZergHeader *zh)
 }
 
 
+void zerg2(FILE *words)
+{
+    struct Command *cm = calloc(sizeof(*cm), 1);
+
+    fread(cm, sizeof(struct Command), 1, words);
+    long command = htonl(cm->Command) >> 16;
+    //printf("Command hex: %x\n", command);
+
+    switch (command)
+    {
+    case (0):
+        printf("GET_STATUS\n");
+        break;
+    case (1):
+        printf("GOTO\n");
+        break;
+    case (2):
+        printf("GET_GPS\n");
+        break;
+    case (3):
+        printf("RESERVED\n");
+        break;
+    case (4):
+        printf("RETURN\n");
+        break;
+    case (5):
+        printf("SET_GROUP\n");
+        break;
+    case (6):
+        printf("STOP\n");
+        break;
+    case (7):
+        printf("REPEAT\n");
+        break;
+    }
+    //printf("P1: %d\n", htonl(cm->Param1));
+    if (!(command % 2 == 0))
+
+
+    {
+        int *P1 = calloc(2,1);
+        fread(P1, 2, 1, words);
+        printf("P1: %d\n", *P1);
+        int *P2 = calloc(4,1);
+        fread(P2, 4, 1, words);
+        printf("P2: %d\n", *P2);
+        free(P1);
+        free(P2);
+    }
+
+    free(cm);
+}
+
+void zerg3(FILE *words)
+{
+    struct GPS *gps = calloc(sizeof(*gps), 1);
+
+    fread(gps, sizeof(struct GPS), 1, words);
+
+
+    double latitude = convert_64(be64toh(gps->Latit));
+    double longitude = convert_64(be64toh(gps->Longit));
+
+    if (latitude > 0)
+    {
+        printf("latitude: %.9f deg. N\n", latitude);
+    }
+    else
+    {
+        printf("latitude: %.9f deg. S\n", fabs(latitude));
+    }
+
+    if (longitude > 0)
+    {
+        printf("longitude: %.9f deg. E\n", longitude);
+    }
+    else
+    {
+        printf("longitude: %.9f deg. W\n", fabs(longitude));
+    }
+
+    uint32_t altitude_bin = htonl(gps->Altit);
+    float altitude = convert_32(altitude_bin);
+
+    uint32_t bearing_bin = htonl(gps->Bearing);
+    float bearing = convert_32(bearing_bin);
+
+    uint32_t speed_bin = htonl(gps->Speed);
+    float speed = convert_32(speed_bin);
+
+    uint32_t acc_bin = htonl(gps->Acc);
+    float accuracy = convert_32(acc_bin);
+
+    printf("Altitude: %.1fm\n", altitude * 1.8288); //Multiplying by 1.8288 to convert fathoms to meters.
+    printf("Bearing: %f deg\n", bearing);
+    printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
+    printf("Accuracy: %.0fm\n", accuracy);
+}
+
 void
 process_zerg_header(
     FILE * words,

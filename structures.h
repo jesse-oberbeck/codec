@@ -127,3 +127,5 @@ convert_64(
     uint64_t num);
 
 void zerg1(FILE *words, struct ZergHeader *zh);
+void zerg2(FILE *words);
+void zerg3(FILE *words);

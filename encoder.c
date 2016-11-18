@@ -20,39 +20,6 @@ int get_value(char *string)
     return(value);
 }
 
-float
-convert_32(
-    uint32_t num)
-{
-    union
-    {
-        float f;
-        uint32_t u;
-    } converter;                //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
-
-    converter.u = num;
-    float result = converter.f;
-
-    return (result);
-}
-
-double
-convert_64(
-    uint64_t num)
-{
-    union
-    {
-        double f;
-        uint64_t u;
-    } converter;                //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
-    uint64_t zero = 0;
-
-    converter.u = zero;
-    converter.u = num;
-    double result = converter.f;
-
-    return (result);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
