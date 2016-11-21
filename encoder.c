@@ -11,14 +11,15 @@
 int get_value(char *string)
 {
     int len = strlen(string);
-    printf("string: %c len: %d\n", string[1], len);
+    //printf("string: %s len: %d\n", string, len);
     for(int i = 0; i < len; ++i)
     {
-        if(isalpha(string[i]) != 0)
+        if((isalpha(string[i]) != 0) || string[i] == ':')
         {
             string[i] = ' ';
         }
     }
+    //printf("string: %s len: %d\n", string, len);
     int value = strtol(string, NULL, 10);
     return(value);
 }
@@ -37,6 +38,65 @@ int file_size2(FILE *words)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
+/*Read in file.*/
+char * read_file(int filesize, FILE *words)
+{
+    char *contents = malloc(filesize);
+    fread(contents, sizeof(char), filesize, words);
+    fclose(words);
+    return(contents);
+}
+
+/*Line count. Tokenizes file based on newline, 
+increasing a counter on each word.
+returns the value held in the counter.*/
+int line_count(char *contents)
+{
+    char *word = strtok(contents, "\n");
+    int wordcount = 0;
+    while(word != NULL){
+        wordcount++;
+        word = strtok(NULL, "\n");
+    }
+    //printf("file total wordcount: %d\n\n", wordcount);
+    return(wordcount);
+}
+
+
+
+char ** setup(int *linecount, const char *filename)
+{
+    FILE *words = fopen(filename, "r");
+    int filesize = file_size(words);
+    char *contents = read_file(filesize, words);
+    char *contents2 = malloc(filesize);
+    strcpy(contents2, contents);
+    *linecount = line_count(contents);
+    free(contents);
+    char **content_array = {'\0'};
+    content_array = malloc(*linecount * (int)(sizeof(char*) + 1));    
+    char *splitstring = strtok(contents2, "\n");
+    int i = 0;
+    while(splitstring){
+        content_array[i] = calloc(strlen(splitstring) + 1, 1);
+        strncpy(content_array[i], splitstring, strlen(splitstring));
+        i++;
+        splitstring = strtok(NULL, "\n");
+
+    }
+    free(contents2);
+    return(content_array);
+}
+
+/*Frees allocated space in array, then array itself.*/
+void array_free(char **content_array, int wordcount)
+{
+    for(int i = 0; i < wordcount; ++i){
+        free(content_array[i]);
+    }
+    free(content_array);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 int
 main(int argc,char *argv[])
@@ -52,22 +112,22 @@ main(int argc,char *argv[])
         fprintf(stderr, "Invalid file name.\n");
         return(1);
     }
-
-    char *file = argv[1];
-    FILE *words = fopen(file, "rb");
-    //int end_pos = file_size(words);
-    char **lines = malloc(file_size2(words));
-
-
-
-
-    //char *testheader = "\xD4\xC3\xB2\xA1";
-    //FILE *words = fopen("testing.pcap", "wb+");
-    //fwrite(testheader, strlen(testheader), 1, words);
+    int linecount = 0;
+    char **lines = setup(&linecount, argv[1]);
     
-    //char test[] = "check 123";
-    //int val = get_value(test);
-    //printf("val: %d\n", val);
+/*
+    for(int i = 0; i < linecount; ++i)
+    {
+        printf("line %d: %s\n", i, lines[i]);
+    }
+*/
+
+    int zerg_type = get_value(lines[0]);
+    //int sequence = get_value(lines[1]) + 1;
+    //int zerg_len = get_value(lines[2]);
+    int did = get_value(lines[3]);
+    int sid = get_value(lines[4]);
+    //printf("%d %d %d %d %d\n", zerg_type, sequence, zerg_len, did, sid);
 
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
     struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
@@ -75,8 +135,8 @@ main(int argc,char *argv[])
     struct Ipv4Header *ih = calloc(sizeof(*ih), 1); //ip header
     struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
     struct ZergHeader *zh = calloc(sizeof(*zh), 1);
-    
-    (*fh).FileType = htonl((unsigned int)3569595041);
+
+    (*fh).FileType = htonl((unsigned int)3569595041); //"\xD4\xC3\xB2\xA1"
     (*fh).MajorVer = 2;
     (*fh).MinorVer = 4;
     (*fh).LLT = 1;
@@ -95,20 +155,32 @@ main(int argc,char *argv[])
     //uh.Length
 
     (*zh).Version = '\x1';
-    (*zh).Type = 0;
+    (*zh).Type = zerg_type;
     (*zh).TotalLen = htonl(24)>>8;
-    (*zh).Sid = htonl(1337)>>16;
-    (*zh).Did = htonl(1234)>>16;
-    
-    //PAYLOAD
-    
+    (*zh).Sid = htonl(sid)>>16;
+    (*zh).Did = htonl(did)>>16;
+
     (*ph).PackLen = 94;
     FILE *packet = fopen(argv[2], "wb+");
+    if(!packet)
+    {
+        fprintf(stderr, "Failed to open file!");
+        return(1);
+    }
     fwrite(fh, sizeof(*fh), 1, packet);
     fwrite(ph, sizeof(*ph), 1, packet);
     fwrite(eh, sizeof(*eh), 1, packet);
     fwrite(ih, sizeof(*ih), 1, packet);
     fwrite(uh, sizeof(*uh), 1, packet);
     fwrite(zh, sizeof(*zh), 1, packet);
+
     fwrite("Hello World!", 12, 1, packet);
+
+    free(fh);
+    free(ph);
+    free(eh);
+    free(ih);
+    free(uh);
+    free(zh);
+    array_free(lines, linecount);
 }

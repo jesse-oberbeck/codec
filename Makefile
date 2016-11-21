@@ -5,6 +5,7 @@ TARGET=decoder encoder
 CPPFLAGS+=-Wall -Wextra -Wpedantic -Wwrite-strings -Wstack-usage=1024 -Wfloat-equal -Waggregate-return -Winline
 
 decoder: decode_functions.o
+encoder: decode_functions.o
 
 CFLAGS+=-std=c11 -g
 
