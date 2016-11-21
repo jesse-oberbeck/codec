@@ -29,9 +29,10 @@ process_file(
 
     /*  Printing Header Information  */
     int length_of_data = htonl(ph->DataLen) >> 24;
+    printf("Length of Data %x\n", htonl(ph->DataLen));
     int ip_len = htonl(ih->TotalLen) >> 16;
     if(length_of_data <= 0){
-        //printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
+        printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
         return(-1);
     }
 

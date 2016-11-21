@@ -34,6 +34,7 @@ main(int argc,char *argv[])
 //Reads in file header once.
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
     fread(fh, sizeof(struct FileHeader), 1, words);
+    printf("LLT: %x\n", fh->MajorVer);
     free(fh);
 
     int current_pos = ftell(words);

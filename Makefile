@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := decoder #found at stackoverflow.com/questions/2057689/how-make-app-knows-default-target-to-build-if-no-target-is-specified
+.DEFAULT_GOAL := default #found at stackoverflow.com/questions/2057689/how-make-app-knows-default-target-to-build-if-no-target-is-specified
 
 TARGET=decoder encoder
 
@@ -10,11 +10,13 @@ CFLAGS+=-std=c11 -g
 
 LDLIBS+=-lm
 
-.PHONY: clean debug profile
+.PHONY: clean debug profile default
+
+default: decoder encoder
 
 clean:$(RM) $(TARGET)
 debug: CFLAGS+=-g
-debug: $(BIN)
+debug: $(TARGET)
 profile: CFLAGS+=-pg
 profile: LDFLAGS+=-pg
-profile: $(BIN)
+profile: $(TARGET)
