@@ -8,21 +8,9 @@
 #include <arpa/inet.h>
 #include "structures.h"
 
-int get_value(char *string)
-{
-    int len = strlen(string);
-    //printf("string: %s len: %d\n", string, len);
-    for(int i = 0; i < len; ++i)
-    {
-        if((isalpha(string[i]) != 0) || string[i] == ':')
-        {
-            string[i] = ' ';
-        }
-    }
-    //printf("string: %s len: %d\n", string, len);
-    int value = strtol(string, NULL, 10);
-    return(value);
-}
+//PADDING: length_of_data - ip_len - 14
+
+
 
 /*Get size of file*/
 int file_size2(FILE *words)
@@ -70,10 +58,10 @@ char ** setup(int *linecount, const char *filename)
     int filesize = file_size(words);
     char *contents = read_file(filesize, words);
     char *contents2 = malloc(filesize);
-    strcpy(contents2, contents);
+    strncpy(contents2, contents, strlen(contents));
     *linecount = line_count(contents);
     free(contents);
-    char **content_array = {'\0'};
+    char **content_array;
     content_array = malloc(*linecount * (int)(sizeof(char*) + 1));    
     char *splitstring = strtok(contents2, "\n");
     int i = 0;
@@ -91,7 +79,7 @@ char ** setup(int *linecount, const char *filename)
 /*Frees allocated space in array, then array itself.*/
 void array_free(char **content_array, int wordcount)
 {
-    for(int i = 0; i < wordcount; ++i){
+    for(int i = 0; i <= wordcount; ++i){
         free(content_array[i]);
     }
     free(content_array);
@@ -125,8 +113,8 @@ main(int argc,char *argv[])
     int zerg_type = get_value(lines[0]);
     //int sequence = get_value(lines[1]) + 1;
     //int zerg_len = get_value(lines[2]);
-    int did = get_value(lines[3]);
-    int sid = get_value(lines[4]);
+    int did = get_value(lines[2]);
+    int sid = get_value(lines[3]);
     //printf("%d %d %d %d %d\n", zerg_type, sequence, zerg_len, did, sid);
 
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
@@ -174,7 +162,26 @@ main(int argc,char *argv[])
     fwrite(uh, sizeof(*uh), 1, packet);
     fwrite(zh, sizeof(*zh), 1, packet);
 
-    fwrite("Hello World!", 12, 1, packet);
+    if (zerg_type == 0)
+    {
+        fwrite("Hello World!", 12, 1, packet);
+    }
+    if (zerg_type == 1)
+    {
+        zerg1_encode(lines, packet);
+    }
+
+    if (zerg_type == 2)
+    {
+        zerg2_encode(lines, packet);
+    }
+
+    if (zerg_type == 3)
+    {
+        //zerg3_encode(lines);
+    }
+
+    //fwrite("Hello World!", 12, 1, packet);
 
     free(fh);
     free(ph);
@@ -183,4 +190,5 @@ main(int argc,char *argv[])
     free(uh);
     free(zh);
     array_free(lines, linecount);
+    fclose(packet);
 }

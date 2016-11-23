@@ -126,6 +126,20 @@ double
 convert_64(
     uint64_t num);
 
-void zerg1(FILE *words, struct ZergHeader *zh);
-void zerg2(FILE *words);
-void zerg3(FILE *words);
+uint64_t
+rev_convert_64(
+    double num);
+    
+uint32_t
+rev_convert_32(
+    float num);
+
+void zerg1_decode(FILE *words, struct ZergHeader *zh);
+void zerg2_decode(FILE *words);
+void zerg3_decode(FILE *words);
+
+void zerg1_encode(char **lines, FILE *packet);
+void zerg2_encode(char **lines, FILE *packet);
+void zerg3_encode(char **lines, FILE *packet);
+
+int get_value(char* );

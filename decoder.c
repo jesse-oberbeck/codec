@@ -34,7 +34,7 @@ main(int argc,char *argv[])
 //Reads in file header once.
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
     fread(fh, sizeof(struct FileHeader), 1, words);
-    printf("LLT: %x\n", fh->MajorVer);
+    //printf("LLT: %x\n", fh->MajorVer);
     free(fh);
 
     int current_pos = ftell(words);
@@ -57,7 +57,7 @@ main(int argc,char *argv[])
         process_zerg_header(words, zh, c);
         int zerg_type = c->zerg_type;
         int total_len = (htonl(zh->TotalLen) >> 8) - 12;
-        printf("namelen: %d\n", total_len);
+        //printf("Zerg Len: %d\n", total_len);
         if (zerg_type == 0)
         {
             char *message = calloc(total_len, 1);
@@ -69,17 +69,17 @@ main(int argc,char *argv[])
 
         if (zerg_type == 1)
         {
-            zerg1(words, zh);
+            zerg1_decode(words, zh);
         }
 
         if (zerg_type == 2)
         {
-            zerg2(words);
+            zerg2_decode(words);
         }
 
         if (zerg_type == 3)
         {
-            zerg3(words);
+            zerg3_decode(words);
         }
 
     current_pos = ftell(words);

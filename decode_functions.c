@@ -8,7 +8,57 @@
 #include <inttypes.h>
 #include <endian.h>
 #include <unistd.h>
+#include <ctype.h>
 #include "structures.h"
+
+int get_value(char *string)
+{
+    int len = strlen(string);
+    //printf("string: %s len: %d\n", string, len);
+    for(int i = 0; i < len; ++i)
+    {
+        if((isalpha(string[i]) != 0) || string[i] == ':')
+        {
+            string[i] = ' ';
+        }
+    }
+    //printf("string: %s len: %d\n", string, len);
+    int value = strtol(string, NULL, 10);
+    return(value);
+}
+
+double get_d_value(char *string)
+{
+    int len = strlen(string);
+    //printf("string: %s len: %d\n", string, len);
+    for(int i = 0; i < len; ++i)
+    {
+        if((isalpha(string[i]) != 0) || string[i] == ':'|| string[i] == '/')
+        {
+            string[i] = ' ';
+        }
+    }
+    //printf("string: %s len: %d\n", string, len);
+    double value = strtod(string, NULL);
+    return(value);
+}
+
+float get_f_value(char *string)
+{
+    int len = strlen(string);
+    //printf("string: %s len: %d\n", string, len);
+    for(int i = 0; i < len; ++i)
+    {
+        if((isalpha(string[i]) != 0) || string[i] == ':'|| string[i] == '/')
+        {
+            string[i] = ' ';
+        }
+    }
+    //printf("string: %s len: %d\n", string, len);
+    float value = strtof(string, NULL);
+    return(value);
+}
+
 int
 process_file(
     FILE * words)
@@ -29,7 +79,7 @@ process_file(
 
     /*  Printing Header Information  */
     int length_of_data = htonl(ph->DataLen) >> 24;
-    printf("Length of Data %x\n", htonl(ph->DataLen));
+    //printf("Length of Data %x\n", htonl(ph->DataLen));
     int ip_len = htonl(ih->TotalLen) >> 16;
     if(length_of_data <= 0){
         printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
@@ -44,22 +94,21 @@ process_file(
     return(length_of_data - ip_len - 14);
 }
 
-void zerg1(FILE *words, struct ZergHeader *zh)
+void zerg1_decode(FILE *words, struct ZergHeader *zh)
 {
     struct Status *st = calloc(sizeof(*st), 1);
 
     fread(st, sizeof(struct Status), 1, words);
-    int nameLen = (htonl(zh->TotalLen) >> 8) - 24;
+    int nameLen = (htonl(zh->TotalLen) >> 8) - 16;
 
-    printf("namelen: %d\n", nameLen);
+    //printf("Zerg Len: %d\n", nameLen);
     char *message = calloc(nameLen, 1);
 
     fread(message, nameLen, 1, words);
     printf("Name: %s\n", message);
     printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
     int unit_type_bin = htonl(st->Type) >> 24;
-    //const char *unit_type = translate_type(unit_type_bin);
-    
+
     const char *type_array[] = {"Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone", "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk", "Mutalisk", "Defiler", "Devourer"};
     
     printf("Type: %s\n", type_array[unit_type_bin]);
@@ -74,8 +123,75 @@ void zerg1(FILE *words, struct ZergHeader *zh)
 
 }
 
+char * extract(char * line)
+{
+    //Extract from line of file.
+    int i = 0;
+    //char *result = calloc(32, 1);
+    char *name = line;
+    char *split_name = strtok(name, ": /");
+    while(split_name != NULL)
+    {
+        if(i == 1){
+            //strcpy(result, split_name);
+            return(split_name);
+        }
+        ++i;
+        split_name = strtok(NULL, ": ");
+    }
+    return(name);
+}
+///////////////////////////////////////////////////////////////////
+void zerg1_encode(char **lines, FILE *packet)
+{
+    struct Status *st = calloc(sizeof(*st), 1);
+    char *name = extract(lines[4]);
+    printf("Name: %s\n", name);
+    
+    char *total_hp = extract(lines[5]);
+    //printf("HP: %s\n", total_hp);
+    int remaining_hp  = get_value(total_hp);
+    int max_hp = get_value(extract(total_hp));
+    //printf("MAXHP: %d\n", max_hp);
+    //printf("HP LEFT: %d\n", remaining_hp);
 
-void zerg2(FILE *words)
+
+    st->HP = htonl(remaining_hp) >> 8;
+    st->MaxHP = htonl(max_hp) >> 8;
+    char * unit_type = extract(lines[6]);
+    printf("Type: %s\n", unit_type);
+
+    const char *type_array[] = {"Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone", "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk", "Mutalisk", "Defiler", "Devourer"};
+    int type = 0;
+    for(int i = 0; i < 16; ++i)
+    {
+        if(strcmp(type_array[i], unit_type) == 0)
+        {
+            type = i;
+            break;
+        }
+    }
+    printf("Type Code: %d\n", type);
+    st->Type = htonl(type) >> 24;
+
+    int armor = get_value(lines[7]);
+    printf("Armor: %d\n", armor);
+    st->Armor = htonl(armor) >> 8;
+    
+    float speed = get_f_value(lines[8]);
+    printf("Speed: %f\n", speed);
+    uint32_t pack_speed = htonl(rev_convert_32(speed));
+    printf("pack speed: %x\n", pack_speed);
+    st->Speed = pack_speed;
+    
+    fwrite(st,12, 1, packet);
+    fwrite(name, strlen(name), 1, packet);
+    free(st);
+
+}
+///////////////////////////////////////////////////////////////////
+
+void zerg2_decode(FILE *words)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
 
@@ -128,7 +244,80 @@ void zerg2(FILE *words)
     free(cm);
 }
 
-void zerg3(FILE *words)
+void zerg2_encode(char **lines, FILE *packet)
+{
+    struct Command *cm = calloc(sizeof(*cm), 1);
+    char *comm = lines[4];
+    printf("lines4: %s\n", lines[4]);
+    if((strcmp(comm, "GET_STATUS") == 0) || (strcmp(comm, "GET_STATUS\n") == 0))
+    {
+        printf("GS\n");
+        fwrite("\x0",2,1,packet);
+    }
+
+    if((strcmp(comm, "GOTO") == 0) || (strcmp(comm, "GOTO\n") == 0))
+    {
+        printf("GO\n");
+        const char *num = "\x0\x1";
+        fwrite(num , 6, 1,packet);
+    }
+
+    if((strcmp(comm, "GET_GPS") == 0) || (strcmp(comm, "GET_GPS\n") == 0))
+    {
+        const char *num = "\x0\x2";
+        fwrite(num , 6, 1,packet);
+    }
+
+     if((strcmp(comm, "RESERVED") == 0) || (strcmp(comm, "RESERVED\n") == 0))
+    {
+        const char *num = "\x0\x3";
+        fwrite(num , 6, 1,packet);
+    }
+
+    if((strcmp(comm, "RETURN") == 0) || (strcmp(comm, "RETURN\n") == 0))
+    {
+        const char *num = "\x0\x4";
+        fwrite(num , 6, 1,packet);
+    }
+
+    if((strcmp(comm, "SET_GROUP") == 0) || (strcmp(comm, "SET_GROUP\n") == 0))
+    {
+        const char *num = "\x0\x5";
+        fwrite(num , 6, 1,packet);
+    }
+    
+    if((strcmp(comm, "STOP") == 0) || (strcmp(comm, "STOP\n") == 0))
+    {
+        const char *num = "\x0\x6";
+        fwrite(num , 6, 1,packet);
+    }
+    
+    if((strcmp(comm, "REPEAT") == 0) || (strcmp(comm, "REPEAT\n") == 0))
+    {
+        const char *num = "\x0\x7";
+        fwrite(num , 6, 1,packet);
+    }
+
+/*
+    {
+        int *P1 = calloc(2,1);
+        fread(P1, 2, 1, lines);
+        printf("P1: %d\n", *P1);
+        int *P2 = calloc(4,1);
+        fread(P2, 4, 1, lines);
+        printf("P2: %d\n", *P2);
+        free(P1);
+        free(P2);
+    }
+*/
+
+    long command = htonl(cm->Command) >> 16;
+    //printf("Command hex: %x\n", command);
+
+    free(cm);
+}
+
+void zerg3_decode(FILE *words)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
@@ -172,6 +361,7 @@ void zerg3(FILE *words)
     printf("Bearing: %f deg\n", bearing);
     printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
     printf("Accuracy: %.0fm\n", accuracy);
+    free(gps);
 }
 
 void
@@ -187,7 +377,7 @@ process_zerg_header(
     //printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
     printf("Message Type: %d\n", zerg_type);
     printf("Sequence: %d\n", htonl(zh->Sequence));
-    printf("Zerg Packet Length: %d\n", total_len);
+    //printf("Zerg Packet Length: %d\n", total_len);
     printf("Destination ID: %d\n", htonl(zh->Did) >> 16);
     printf("Source ID: %d\n", htonl(zh->Sid) >> 16);
     c->zerg_type = zerg_type;
@@ -224,6 +414,22 @@ convert_32(
     return (result);
 }
 
+uint32_t
+rev_convert_32(
+    float num)
+{
+    union
+    {
+        float f;
+        uint32_t u;
+    } converter;                //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
+
+    converter.f = num;
+    uint32_t result = converter.u;
+
+    return (result);
+}
+
 double
 convert_64(
     uint64_t num)
@@ -242,3 +448,20 @@ convert_64(
     return (result);
 }
 
+uint64_t
+rev_convert_64(
+    double num)
+{
+    union
+    {
+        double f;
+        uint64_t u;
+    } converter;                //stackoverflow.com/questions/15685181/how-to-get-the-sign-mantissa-and-exponent-of-a-floating-point-number
+    uint64_t zero = 0;
+
+    converter.u = zero;
+    converter.f = num;
+    uint64_t result = converter.u;
+
+    return (result);
+}
