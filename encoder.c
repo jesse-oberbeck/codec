@@ -178,7 +178,7 @@ main(int argc,char *argv[])
 
     if (zerg_type == 3)
     {
-        //zerg3_encode(lines);
+        zerg3_encode(lines, packet);
     }
 
     //fwrite("Hello World!", 12, 1, packet);
