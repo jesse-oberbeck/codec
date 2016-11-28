@@ -139,7 +139,7 @@ main(int argc,char *argv[])
     (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
     (*ih).Protocol = '\x11';
 
-    (*uh).Dport = "\x0e\xa7";
+    (*uh).Dport = 42766;
     //uh.Length
 
     (*zh).Version = '\x1';

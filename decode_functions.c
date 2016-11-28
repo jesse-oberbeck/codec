@@ -364,7 +364,7 @@ void zerg3_decode(FILE *words)
     free(gps);
 }
 
-void zerg3_encode(char **lines, FILE *words)
+void zerg3_encode(char **lines, FILE *packet)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
     printf("L4 %s\n", lines[4]);
@@ -378,7 +378,7 @@ void zerg3_encode(char **lines, FILE *words)
     double lon = get_d_value(lines[5]);
     printf ("%lf\n%lf\n", lat, lon);
 
-    if (strstr(lines[4], "S") == NULL)
+    if (strstr(lines[4], "S") != NULL)
     {
         lat = lat * -1;
     }
@@ -388,9 +388,9 @@ void zerg3_encode(char **lines, FILE *words)
         lon = lon * -1;
     }
 
-    float alt = get_f_value(lines[6]);
+    float alt = get_f_value(lines[6]) * .546807;
     float bear = get_f_value(lines[7]);
-    float speed = get_f_value(lines[8]);
+    float speed = get_f_value(lines[8]) * .277778;
     float acc = get_f_value(lines[9]);
 
     uint64_t lat_bin = be64toh(rev_convert_64(lat));
@@ -413,6 +413,7 @@ void zerg3_encode(char **lines, FILE *words)
     printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
     printf("Accuracy: %.0fm\n", accuracy);
 */
+    fwrite(gps, 32, 1, packet);
     free(gps);
 }
 
