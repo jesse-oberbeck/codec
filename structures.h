@@ -54,7 +54,7 @@ struct __attribute__ ((__packed__)) Ipv4Header
 struct __attribute__ ((__packed__)) UdpHeader
 {
     int Sport:16;
-    int Dport:16;
+    unsigned  int Dport:16;
     int Len:16;
     int CheckSum:16;
 };

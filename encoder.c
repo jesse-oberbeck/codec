@@ -9,6 +9,7 @@
 #include "structures.h"
 
 //PADDING: length_of_data - ip_len - 14
+//94 bytes before payload
 
 
 
@@ -155,16 +156,27 @@ main(int argc,char *argv[])
         fprintf(stderr, "Failed to open file!");
         return(1);
     }
-    fwrite(fh, sizeof(*fh), 1, packet);
-    fwrite(ph, sizeof(*ph), 1, packet);
-    fwrite(eh, sizeof(*eh), 1, packet);
-    fwrite(ih, sizeof(*ih), 1, packet);
-    fwrite(uh, sizeof(*uh), 1, packet);
-    fwrite(zh, sizeof(*zh), 1, packet);
+    //fwrite(fh, sizeof(*fh), 1, packet);
+    //fwrite(ph, sizeof(*ph), 1, packet);
+    //fwrite(eh, sizeof(*eh), 1, packet);
+    //fwrite(ih, sizeof(*ih), 1, packet);
+    //fwrite(uh, sizeof(*uh), 1, packet);
+    //fwrite(zh, sizeof(*zh), 1, packet);
 
     if (zerg_type == 0)
     {
-        fwrite("Hello World!", 12, 1, packet);
+        int p_len = 94 + strlen(lines[4]);
+        int total_len = htonl(p_len)>>24;
+        (*ph).PackLen = total_len;
+        (*ph).DataLen = total_len;
+        (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+        fwrite(fh, sizeof(*fh), 1, packet);
+        fwrite(ph, sizeof(*ph), 1, packet);
+        fwrite(eh, sizeof(*eh), 1, packet);
+        fwrite(ih, sizeof(*ih), 1, packet);
+        fwrite(uh, sizeof(*uh), 1, packet);
+        fwrite(zh, sizeof(*zh), 1, packet);
+        fwrite(lines[4], strlen(lines[4]), 1, packet);
     }
     if (zerg_type == 1)
     {
@@ -189,6 +201,8 @@ main(int argc,char *argv[])
     free(ih);
     free(uh);
     free(zh);
-    array_free(lines, linecount);
     fclose(packet);
+    array_free(lines, linecount);
+
+    return(0);
 }
