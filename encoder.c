@@ -136,10 +136,10 @@ main(int argc,char *argv[])
 
     (*ih).Version = '\x4';
     (*ih).IHL = '\x5';
-    (*ih).TotalLen = htonl(60)>>16;//Lenght of packet. 48 + payload
+    (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
     (*ih).Protocol = '\x11';
 
-    //uh.Dport
+    (*uh).Dport = "\x0e\xa7";
     //uh.Length
 
     (*zh).Version = '\x1';

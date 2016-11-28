@@ -373,50 +373,46 @@ void zerg3_encode(char **lines, FILE *words)
     printf("L7 %s\n", lines[7]);
     printf("L8 %s\n", lines[8]);
     printf("L9 %s\n", lines[9]);
-    
+
     double lat = get_d_value(lines[4]);
     double lon = get_d_value(lines[5]);
     printf ("%lf\n%lf\n", lat, lon);
 
+    if (strstr(lines[4], "S") == NULL)
+    {
+        lat = lat * -1;
+    }
+
+    if (strstr(lines[5], "W") == NULL)
+    {
+        lon = lon * -1;
+    }
+
+    float alt = get_f_value(lines[6]);
+    float bear = get_f_value(lines[7]);
+    float speed = get_f_value(lines[8]);
+    float acc = get_f_value(lines[9]);
+
+    uint64_t lat_bin = be64toh(rev_convert_64(lat));
+    uint64_t lon_bin = be64toh(rev_convert_64(lon));
+    uint32_t alt_bin = htonl(rev_convert_32(alt));
+    uint32_t bear_bin = htonl(rev_convert_32(bear));
+    uint32_t speed_bin = htonl(rev_convert_32(speed));
+    uint32_t acc_bin = htonl(rev_convert_32(acc));
+
+    gps->Longit = lon_bin;
+    gps->Latit = lat_bin;
+    gps->Altit = alt_bin;
+    gps->Bearing = bear_bin;
+    gps->Speed = speed_bin;
+    gps->Acc = acc_bin;
+
 /*
-    double latitude = convert_64(be64toh(gps->Latit));
-    double longitude = convert_64(be64toh(gps->Longit));
-
-    if (latitude > 0)
-    {
-        printf("latitude: %.9f deg. N\n", latitude);
-    }
-    else
-    {
-        printf("latitude: %.9f deg. S\n", fabs(latitude));
-    }
-
-    if (longitude > 0)
-    {
-        printf("longitude: %.9f deg. E\n", longitude);
-    }
-    else
-    {
-        printf("longitude: %.9f deg. W\n", fabs(longitude));
-    }
-
-    uint32_t altitude_bin = htonl(gps->Altit);
-    float altitude = convert_32(altitude_bin);
-
-    uint32_t bearing_bin = htonl(gps->Bearing);
-    float bearing = convert_32(bearing_bin);
-
-    uint32_t speed_bin = htonl(gps->Speed);
-    float speed = convert_32(speed_bin);
-
-    uint32_t acc_bin = htonl(gps->Acc);
-    float accuracy = convert_32(acc_bin);
-
     printf("Altitude: %.1fm\n", altitude * 1.8288); //Multiplying by 1.8288 to convert fathoms to meters.
     printf("Bearing: %f deg\n", bearing);
     printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
     printf("Accuracy: %.0fm\n", accuracy);
-    */
+*/
     free(gps);
 }
 
