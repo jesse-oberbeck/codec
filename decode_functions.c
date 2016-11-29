@@ -99,7 +99,7 @@ void zerg1_decode(FILE *words, struct ZergHeader *zh)
     struct Status *st = calloc(sizeof(*st), 1);
 
     fread(st, sizeof(struct Status), 1, words);
-    int nameLen = (htonl(zh->TotalLen) >> 8) - 16;
+    int nameLen = (htonl(zh->TotalLen) >> 8) - 24;
 
     //printf("Zerg Len: %d\n", nameLen);
     char *message = calloc(nameLen, 1);
@@ -244,77 +244,80 @@ void zerg2_decode(FILE *words)
     free(cm);
 }
 
-struct Command * zerg2_encode(char **lines, FILE *packet)
+int zerg2_encode(char **lines, FILE *packet)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
     char *comm = lines[4];
-    printf("lines4: %s\n", lines[4]);
+    int command_num = 0;
+    //printf("lines4: %s\n", lines[4]);
+    
+
+    char *num;
+    
+    
+    
     if((strcmp(comm, "GET_STATUS") == 0) || (strcmp(comm, "GET_STATUS\n") == 0))
     {
-        printf("GS\n");
-        fwrite("\x0",2,1,packet);
+        //printf("GS\n");
+        //fwrite("\x0",2,1,packet);
     }
 
     if((strcmp(comm, "GOTO") == 0) || (strcmp(comm, "GOTO\n") == 0))
     {
-        printf("GO\n");
-        const char *num = "\x0\x1";
-        fwrite(num , 6, 1,packet);
+        //printf("GO\n");
+        //num = "\x0\x1";
+        //fwrite(num , 6, 1,packet);
+        command_num = 1;
     }
 
     if((strcmp(comm, "GET_GPS") == 0) || (strcmp(comm, "GET_GPS\n") == 0))
     {
-        const char *num = "\x0\x2";
-        fwrite(num , 6, 1,packet);
+        //num = "\x0\x2";
+        //fwrite(num , 6, 1,packet);
+        command_num = 2;
     }
 
      if((strcmp(comm, "RESERVED") == 0) || (strcmp(comm, "RESERVED\n") == 0))
     {
-        const char *num = "\x0\x3";
-        fwrite(num , 6, 1,packet);
+        //num = "\x0\x3";
+        //fwrite(num , 6, 1,packet);
+        command_num = 3;
     }
 
     if((strcmp(comm, "RETURN") == 0) || (strcmp(comm, "RETURN\n") == 0))
     {
-        const char *num = "\x0\x4";
-        fwrite(num , 6, 1,packet);
+        //num = "\x0\x4";
+        //fwrite(num , 6, 1,packet);
+        command_num = 4;
     }
 
     if((strcmp(comm, "SET_GROUP") == 0) || (strcmp(comm, "SET_GROUP\n") == 0))
     {
-        const char *num = "\x0\x5";
-        fwrite(num , 6, 1,packet);
+        //num = "\x0\x5";
+        //fwrite(num , 6, 1,packet);
+        command_num = 5;
     }
     
     if((strcmp(comm, "STOP") == 0) || (strcmp(comm, "STOP\n") == 0))
     {
-        const char *num = "\x0\x6";
-        fwrite(num , 6, 1,packet);
+        //num = "\x0\x6";
+        //fwrite(num , 6, 1,packet);
+        command_num = 6;
     }
     
     if((strcmp(comm, "REPEAT") == 0) || (strcmp(comm, "REPEAT\n") == 0))
     {
-        const char *num = "\x0\x7";
-        fwrite(num , 6, 1,packet);
+        //num = "\x0\x7";
+        //fwrite(num , 6, 1,packet);
+        command_num = 7;
     }
 
-/*
-    {
-        int *P1 = calloc(2,1);
-        fread(P1, 2, 1, lines);
-        printf("P1: %d\n", *P1);
-        int *P2 = calloc(4,1);
-        fread(P2, 4, 1, lines);
-        printf("P2: %d\n", *P2);
-        free(P1);
-        free(P2);
-    }
-*/
 
-    long command = htonl(cm->Command) >> 16;
+
+    //long command = htonl(cm->Command) >> 16;
     //printf("Command hex: %x\n", command);
 
-    return(cm);
+    return(command_num);
 }
 
 void zerg3_decode(FILE *words)

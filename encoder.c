@@ -47,7 +47,7 @@ int line_count(char *contents)
         wordcount++;
         word = strtok(NULL, "\n");
     }
-    printf("file total wordcount: %d\n\n", wordcount);
+    //printf("file total wordcount: %d\n\n", wordcount);
     return(wordcount);
 }
 
@@ -100,7 +100,7 @@ char ** setup(int *linecount, char *packet)
     content_array = malloc(*linecount * (int)(sizeof(char*) + 1));    
     char *splitstring = strtok(contents2, "\n");
     int i = 0;
-    while(splitstring){
+    while((splitstring) && strcmp(splitstring,"\n") != 0){
         content_array[i] = calloc(strlen(splitstring) + 1, 1);
         strncpy(content_array[i], splitstring, strlen(splitstring));
         i++;
@@ -137,8 +137,15 @@ main(int argc,char *argv[])
     }
     int packetcount = 0;
     int linecount = 0;
+    int payload_size = 0;
     char **packets = initialize(&packetcount, argv[1]);
     FILE *packet = fopen(argv[2], "wb+");
+    struct FileHeader *fh = calloc(sizeof(*fh), 1);
+    (*fh).FileType = htonl((unsigned int)3569595041); //"\xD4\xC3\xB2\xA1"
+    (*fh).MajorVer = 2;
+    (*fh).MinorVer = 4;
+    (*fh).LLT = 1;
+    fwrite(fh, sizeof(*fh), 1, packet);
 for(int i = 0; i < packetcount; ++i){
     linecount = 0;
     printf("\nCURRENT PACKET: %s\n",packets[i]);
@@ -149,26 +156,23 @@ for(int i = 0; i < packetcount; ++i){
     int did = get_value(lines[2]);
     int sid = get_value(lines[3]);
 
-    struct FileHeader *fh = calloc(sizeof(*fh), 1);
+
     struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
     struct EthernetHeader *eh = calloc(sizeof(*eh), 1); //ethernet header
     struct Ipv4Header *ih = calloc(sizeof(*ih), 1); //ip header
     struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
     struct ZergHeader *zh = calloc(sizeof(*zh), 1);
 
-    (*fh).FileType = htonl((unsigned int)3569595041); //"\xD4\xC3\xB2\xA1"
-    (*fh).MajorVer = 2;
-    (*fh).MinorVer = 4;
-    (*fh).LLT = 1;
 
-    (*ph).PackLen = htonl(108)>>24;
-    (*ph).DataLen = htonl(108)>>24;
+
+    //(*ph).PackLen = htonl(108)>>24;
+    //(*ph).DataLen = htonl(108)>>24;
 
     (*eh).Etype = 2048;
 
     (*ih).Version = '\x4';
     (*ih).IHL = '\x5';
-    (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+    //(*ih).TotalLen = htonl(60)>>16;//Length of packet. 40 + payload
     (*ih).Protocol = '\x11';
 
     (*uh).Dport = 42766;
@@ -176,7 +180,7 @@ for(int i = 0; i < packetcount; ++i){
 
     (*zh).Version = '\x1';
     (*zh).Type = zerg_type;
-    (*zh).TotalLen = htonl(24)>>8;
+    //(*zh).TotalLen = htonl(24)>>8;
     (*zh).Sid = htonl(sid)>>16;
     (*zh).Did = htonl(did)>>16;
 
@@ -188,16 +192,21 @@ for(int i = 0; i < packetcount; ++i){
         return(1);
     }
 
-    fwrite(fh, sizeof(*fh), 1, packet);
+
 
 
     if (zerg_type == 0)
     {
-        int p_len = 94 + strlen(lines[4]);
+        int zerglen = 12 + strlen(lines[4]);
+        //printf("zerglen: %d\n", zerglen);
+        int p_len = 42 + zerglen;
         int total_len = htonl(p_len)>>24;
+        int ip_len = 28 + zerglen;
+        printf("l4: %s len: %d\n", lines[4], p_len - ip_len);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
-        (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
+        (*zh).TotalLen = htonl(zerglen)>>8;
         fwrite(ph, sizeof(*ph), 1, packet);
         fwrite(eh, sizeof(*eh), 1, packet);
         fwrite(ih, sizeof(*ih), 1, packet);
@@ -207,43 +216,85 @@ for(int i = 0; i < packetcount; ++i){
     }
     else if (zerg_type == 1)
     {
-        int p_len = 94 + sizeof(struct Status) + strlen(lines[4]);
+        int zerglen = (24 + strlen(lines[4]) - 6);
+        //printf("!zerglen: %d\n", zerglen);
+        int p_len = 42 + zerglen;
         int total_len = htonl(p_len)>>24;
+        int ip_len = 28 + zerglen;
+        printf("l4: %s len: %d\n", lines[4], p_len - ip_len);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
-        (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
         //struct Status *zp = calloc(sizeof(*zp), 1);
+        char *name = lines[4];
+        
+        (*zh).TotalLen = htonl(zerglen)>>8;
         fwrite(ph, sizeof(*ph), 1, packet);
         fwrite(eh, sizeof(*eh), 1, packet);
         fwrite(ih, sizeof(*ih), 1, packet);
         fwrite(uh, sizeof(*uh), 1, packet);
         fwrite(zh, sizeof(*zh), 1, packet);
         zerg1_encode(lines, packet);
+        printf("packet len: %d ip len: %d\n", p_len, ip_len);
     }
 
     else if (zerg_type == 2)
     {
-        int p_len = 94 + sizeof(struct Command);
-        int total_len = htonl(p_len)>>24;
+    /*
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
-        (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
+        //struct Command *zp = calloc(sizeof(*zp), 1);
+        fwrite(ph, sizeof(*ph), 1, packet);
+        fwrite(eh, sizeof(*eh), 1, packet);
+        fwrite(ih, sizeof(*ih), 1, packet);
+        fwrite(uh, sizeof(*uh), 1, packet);
+        fwrite(zh, sizeof(*zh), 1, packet);*/
+        int command_num = zerg2_encode(lines, packet);
+        char *bytes = " ";
+        //sprintf(bytes, "%2x", command_num);
+
+        int p_len = 0;
+        int total_len = 0;
+        int ip_len = 0;
+        if(command_num % 2 == 0)
+        {
+            p_len = 56;
+            
+            total_len = htonl(p_len)>>24;
+            ip_len = 40 + 2;
+        }
+        else
+        {
+            p_len = 62;
+            
+            total_len = htonl(p_len)>>24;
+            ip_len = 40 + 8;
+        }
+        printf("packet len: %d ip len: %d\n", p_len, ip_len);
+
+
+        (*ph).PackLen = total_len;
+        (*ph).DataLen = total_len;
+        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
         //struct Command *zp = calloc(sizeof(*zp), 1);
         fwrite(ph, sizeof(*ph), 1, packet);
         fwrite(eh, sizeof(*eh), 1, packet);
         fwrite(ih, sizeof(*ih), 1, packet);
         fwrite(uh, sizeof(*uh), 1, packet);
         fwrite(zh, sizeof(*zh), 1, packet);
-        zerg2_encode(lines, packet);
+
+        fwrite(&command_num , 6, 1,packet);
     }
 
     else if (zerg_type == 3)
     {
-        int p_len = 94 + sizeof(struct GPS);
+        int p_len = 70 + sizeof(struct GPS);
         int total_len = htonl(p_len)>>24;
+        int ip_len = 40 + strlen(lines[4]);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
-        (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
         //struct GPS *zp = calloc(sizeof(*zp), 1);
         fwrite(ph, sizeof(*ph), 1, packet);
         fwrite(eh, sizeof(*eh), 1, packet);
