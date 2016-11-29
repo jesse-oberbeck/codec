@@ -103,20 +103,13 @@ main(int argc,char *argv[])
     }
     int linecount = 0;
     char **lines = setup(&linecount, argv[1]);
-    
-/*
-    for(int i = 0; i < linecount; ++i)
-    {
-        printf("line %d: %s\n", i, lines[i]);
-    }
-*/
+
 
     int zerg_type = get_value(lines[0]);
     //int sequence = get_value(lines[1]) + 1;
     //int zerg_len = get_value(lines[2]);
     int did = get_value(lines[2]);
     int sid = get_value(lines[3]);
-    //printf("%d %d %d %d %d\n", zerg_type, sequence, zerg_len, did, sid);
 
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
     struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
@@ -156,12 +149,9 @@ main(int argc,char *argv[])
         fprintf(stderr, "Failed to open file!");
         return(1);
     }
-    //fwrite(fh, sizeof(*fh), 1, packet);
-    //fwrite(ph, sizeof(*ph), 1, packet);
-    //fwrite(eh, sizeof(*eh), 1, packet);
-    //fwrite(ih, sizeof(*ih), 1, packet);
-    //fwrite(uh, sizeof(*uh), 1, packet);
-    //fwrite(zh, sizeof(*zh), 1, packet);
+
+    fwrite(fh, sizeof(*fh), 1, packet);
+
 
     if (zerg_type == 0)
     {
@@ -170,7 +160,6 @@ main(int argc,char *argv[])
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
         (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
-        fwrite(fh, sizeof(*fh), 1, packet);
         fwrite(ph, sizeof(*ph), 1, packet);
         fwrite(eh, sizeof(*eh), 1, packet);
         fwrite(ih, sizeof(*ih), 1, packet);
@@ -178,22 +167,68 @@ main(int argc,char *argv[])
         fwrite(zh, sizeof(*zh), 1, packet);
         fwrite(lines[4], strlen(lines[4]), 1, packet);
     }
-    if (zerg_type == 1)
+    else if (zerg_type == 1)
     {
+        int p_len = 94 + sizeof(struct Status) + strlen(lines[4]);
+        int total_len = htonl(p_len)>>24;
+        (*ph).PackLen = total_len;
+        (*ph).DataLen = total_len;
+        (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+        //struct Status *zp = calloc(sizeof(*zp), 1);
+        fwrite(ph, sizeof(*ph), 1, packet);
+        fwrite(eh, sizeof(*eh), 1, packet);
+        fwrite(ih, sizeof(*ih), 1, packet);
+        fwrite(uh, sizeof(*uh), 1, packet);
+        fwrite(zh, sizeof(*zh), 1, packet);
         zerg1_encode(lines, packet);
     }
 
-    if (zerg_type == 2)
+    else if (zerg_type == 2)
     {
+        int p_len = 94 + sizeof(struct Command);
+        int total_len = htonl(p_len)>>24;
+        (*ph).PackLen = total_len;
+        (*ph).DataLen = total_len;
+        (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+        //struct Command *zp = calloc(sizeof(*zp), 1);
+        fwrite(ph, sizeof(*ph), 1, packet);
+        fwrite(eh, sizeof(*eh), 1, packet);
+        fwrite(ih, sizeof(*ih), 1, packet);
+        fwrite(uh, sizeof(*uh), 1, packet);
+        fwrite(zh, sizeof(*zh), 1, packet);
         zerg2_encode(lines, packet);
     }
 
-    if (zerg_type == 3)
+    else if (zerg_type == 3)
     {
+        int p_len = 94 + sizeof(struct GPS);
+        int total_len = htonl(p_len)>>24;
+        (*ph).PackLen = total_len;
+        (*ph).DataLen = total_len;
+        (*ih).TotalLen = htonl(60)>>16;//Length of packet. 48 + payload
+        //struct GPS *zp = calloc(sizeof(*zp), 1);
+        fwrite(ph, sizeof(*ph), 1, packet);
+        fwrite(eh, sizeof(*eh), 1, packet);
+        fwrite(ih, sizeof(*ih), 1, packet);
+        fwrite(uh, sizeof(*uh), 1, packet);
+        fwrite(zh, sizeof(*zh), 1, packet);
         zerg3_encode(lines, packet);
     }
+    
+    else
+    {
+        fprintf(stderr, "Invalid packet instructions. Closing.");
+        free(fh);
+        free(ph);
+        free(eh);
+        free(ih);
+        free(uh);
+        free(zh);
+        fclose(packet);
+        array_free(lines, linecount);
+        return(1);
+    }
 
-    //fwrite("Hello World!", 12, 1, packet);
 
     free(fh);
     free(ph);

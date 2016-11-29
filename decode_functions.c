@@ -142,7 +142,7 @@ char * extract(char * line)
     return(name);
 }
 ///////////////////////////////////////////////////////////////////
-void zerg1_encode(char **lines, FILE *packet)
+struct Status * zerg1_encode(char **lines, FILE *packet)
 {
     struct Status *st = calloc(sizeof(*st), 1);
     char *name = extract(lines[4]);
@@ -186,7 +186,7 @@ void zerg1_encode(char **lines, FILE *packet)
     
     fwrite(st,12, 1, packet);
     fwrite(name, strlen(name), 1, packet);
-    free(st);
+    return(st);
 
 }
 ///////////////////////////////////////////////////////////////////
@@ -244,7 +244,7 @@ void zerg2_decode(FILE *words)
     free(cm);
 }
 
-void zerg2_encode(char **lines, FILE *packet)
+struct Command * zerg2_encode(char **lines, FILE *packet)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
     char *comm = lines[4];
@@ -314,7 +314,7 @@ void zerg2_encode(char **lines, FILE *packet)
     long command = htonl(cm->Command) >> 16;
     //printf("Command hex: %x\n", command);
 
-    free(cm);
+    return(cm);
 }
 
 void zerg3_decode(FILE *words)
@@ -364,7 +364,7 @@ void zerg3_decode(FILE *words)
     free(gps);
 }
 
-void zerg3_encode(char **lines, FILE *packet)
+struct GPS * zerg3_encode(char **lines, FILE *packet)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
     printf("L4 %s\n", lines[4]);
@@ -414,7 +414,7 @@ void zerg3_encode(char **lines, FILE *packet)
     printf("Accuracy: %.0fm\n", accuracy);
 */
     fwrite(gps, 32, 1, packet);
-    free(gps);
+    return(gps);
 }
 
 void
