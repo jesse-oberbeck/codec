@@ -85,7 +85,7 @@ main(int argc,char *argv[])
     current_pos = ftell(words);
     //printf("RESULT: %d\n", result);
     fseek(words, result, SEEK_CUR);
-    puts("");
+    puts("~");
     }
     free(zh);
     free(c);

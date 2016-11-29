@@ -47,19 +47,53 @@ int line_count(char *contents)
         wordcount++;
         word = strtok(NULL, "\n");
     }
-    //printf("file total wordcount: %d\n\n", wordcount);
+    printf("file total wordcount: %d\n\n", wordcount);
     return(wordcount);
 }
 
+int packet_count(char *contents)
+{
+    char *word = strtok(contents, "~");
+    int packetcount = 0;
+    while(word != NULL){
+        packetcount++;
+        word = strtok(NULL, "~");
+    }
+    printf("file total packets: %d\n\n", packetcount - 1);
+    return(packetcount - 1);
+}
 
-
-char ** setup(int *linecount, const char *filename)
+char ** initialize(int *packetcount, const char *filename)
 {
     FILE *words = fopen(filename, "r");
     int filesize = file_size(words);
     char *contents = read_file(filesize, words);
     char *contents2 = malloc(filesize);
     strncpy(contents2, contents, strlen(contents));
+    *packetcount = packet_count(contents);
+    free(contents);
+    char **content_array;
+    content_array = malloc(*packetcount * (int)(sizeof(char*) + 1));    
+    char *splitstring = strtok(contents2, "~");
+    int i = 0;
+    while(splitstring){
+        content_array[i] = calloc(strlen(splitstring) + 1, 1);
+        strncpy(content_array[i], splitstring, strlen(splitstring));
+        i++;
+        splitstring = strtok(NULL, "~");
+
+    }
+    free(contents2);
+    return(content_array);
+}
+
+char ** setup(int *linecount, char *packet)
+{
+    char *contents = packet;
+    /////
+    char *contents2 = malloc(strlen(packet));
+    strncpy(contents2, contents, strlen(contents));
+    /////
     *linecount = line_count(contents);
     free(contents);
     char **content_array;
@@ -101,10 +135,14 @@ main(int argc,char *argv[])
         fprintf(stderr, "Invalid file name.\n");
         return(1);
     }
+    int packetcount = 0;
     int linecount = 0;
-    char **lines = setup(&linecount, argv[1]);
-
-
+    char **packets = initialize(&packetcount, argv[1]);
+    FILE *packet = fopen(argv[2], "wb+");
+for(int i = 0; i < packetcount; ++i){
+    linecount = 0;
+    printf("\nCURRENT PACKET: %s\n",packets[i]);
+    char **lines = setup(&linecount, packets[i]);
     int zerg_type = get_value(lines[0]);
     //int sequence = get_value(lines[1]) + 1;
     //int zerg_len = get_value(lines[2]);
@@ -143,7 +181,7 @@ main(int argc,char *argv[])
     (*zh).Did = htonl(did)>>16;
 
     (*ph).PackLen = 94;
-    FILE *packet = fopen(argv[2], "wb+");
+
     if(!packet)
     {
         fprintf(stderr, "Failed to open file!");
@@ -236,8 +274,9 @@ main(int argc,char *argv[])
     free(ih);
     free(uh);
     free(zh);
-    fclose(packet);
-    array_free(lines, linecount);
 
+    //array_free(lines, linecount);
+}
+    fclose(packet);
     return(0);
 }
