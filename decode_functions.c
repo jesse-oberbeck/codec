@@ -97,7 +97,7 @@ void zerg1_decode(FILE *words, struct ZergHeader *zh)
     struct Status *st = calloc(sizeof(*st), 1);
 
     fread(st, sizeof(struct Status), 1, words);
-    int nameLen = (htonl(zh->TotalLen) >> 8) - 24;
+    int nameLen = (htonl(zh->TotalLen) >> 8);// - 24;
 
     //printf("Zerg Len: %d\n", nameLen);
     char *message = calloc(nameLen, 1);

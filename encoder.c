@@ -286,7 +286,7 @@ for(int i = 0; i < packetcount; ++i){
         fwrite(uh, sizeof(*uh), 1, packet);
         fwrite(zh, sizeof(*zh), 1, packet);
 
-        fwrite(&command_num , 6, 1,packet);
+        fwrite(&command_num , 2, 1,packet);
     }
 
     else if (zerg_type == 3)

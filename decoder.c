@@ -46,13 +46,13 @@ main(int argc,char *argv[])
     while(current_pos != end_pos)
     {
         result = process_file(words);
-        if(result < 0)
+        /*if(result < 0)
         {
             free(zh);
             free(c);
             fclose(words);
             return(0);
-        }
+        }*/
 
         process_zerg_header(words, zh, c);
         int zerg_type = c->zerg_type;
@@ -82,11 +82,12 @@ main(int argc,char *argv[])
             zerg3_decode(words);
         }
 
-    current_pos = ftell(words);
+
     //printf("RESULT: %d\n", result);
     if(result > 0){
         fseek(words, result, SEEK_CUR);
     }
+    current_pos = ftell(words);
     puts("~");
     }
     free(zh);
