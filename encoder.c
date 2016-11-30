@@ -218,11 +218,11 @@ for(int i = 0; i < packetcount; ++i){
     }
     else if (zerg_type == 1)
     {
-        int zerglen = (24 + strlen(lines[4]) - 6);
+        int zerglen = (strlen(lines[4]) - 6);
         //printf("!zerglen: %d\n", zerglen);
-        int p_len = 42 + zerglen;
+        int p_len = 54 + zerglen;
         int total_len = htonl(p_len)>>24;
-        int ip_len = 28 + zerglen;
+        int ip_len = 40 + zerglen;
         printf("l4: %s len: %d\n", lines[4], p_len - ip_len);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
