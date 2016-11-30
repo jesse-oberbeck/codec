@@ -68,7 +68,7 @@ char ** initialize(int *packetcount, const char *filename)
     FILE *words = fopen(filename, "r");
     int filesize = file_size(words);
     char *contents = read_file(filesize, words);
-    char *contents2 = malloc(filesize);
+    char *contents2 = calloc(contents, 1);
     strncpy(contents2, contents, strlen(contents));
     *packetcount = packet_count(contents);
     free(contents);
@@ -150,7 +150,7 @@ main(int argc,char *argv[])
 
 for(int i = 0; i < packetcount; ++i){
     linecount = 0;
-    printf("\nCURRENT PACKET: %s\n",packets[i]);
+    //printf("\nCURRENT PACKET: %s\n",packets[i]);
     char **lines = setup(&linecount, packets[i]);
     int zerg_type = get_value(lines[0]);
     //int sequence = get_value(lines[1]) + 1;
@@ -317,6 +317,7 @@ for(int i = 0; i < packetcount; ++i){
         free(zh);
         fclose(packet);
         array_free(lines, linecount);
+        free(packets);
         return(1);
     }
 
@@ -328,7 +329,8 @@ for(int i = 0; i < packetcount; ++i){
     free(uh);
     free(zh);
 
-    //array_free(lines, linecount);
+    array_free(lines, linecount);
+    free(packets);
 }
     fclose(packet);
     return(0);

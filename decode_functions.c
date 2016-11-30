@@ -140,7 +140,7 @@ char * extract(char * line)
     return(name);
 }
 ///////////////////////////////////////////////////////////////////
-struct Status * zerg1_encode(char **lines, FILE *packet)
+void zerg1_encode(char **lines, FILE *packet)
 {
     struct Status *st = calloc(sizeof(*st), 1);
     char *name = extract(lines[4]);
@@ -184,7 +184,8 @@ struct Status * zerg1_encode(char **lines, FILE *packet)
     
     fwrite(st,12, 1, packet);
     fwrite(name, strlen(name), 1, packet);
-    return(st);
+    free(st);
+    return;
 
 }
 ///////////////////////////////////////////////////////////////////
@@ -315,6 +316,7 @@ int zerg2_encode(char **lines, FILE *packet)
     //long command = htonl(cm->Command) >> 16;
     //printf("Command hex: %x\n", command);
 
+    free(cm);
     return(command_num);
 }
 
@@ -365,15 +367,15 @@ void zerg3_decode(FILE *words)
     free(gps);
 }
 
-struct GPS * zerg3_encode(char **lines, FILE *packet)
+void zerg3_encode(char **lines, FILE *packet)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
-    printf("L4 %s\n", lines[4]);
-    printf("L5 %s\n", lines[5]);
-    printf("L6 %s\n", lines[6]);
-    printf("L7 %s\n", lines[7]);
-    printf("L8 %s\n", lines[8]);
-    printf("L9 %s\n", lines[9]);
+    //printf("L4 %s\n", lines[4]);
+    //printf("L5 %s\n", lines[5]);
+    //printf("L6 %s\n", lines[6]);
+    //printf("L7 %s\n", lines[7]);
+    //printf("L8 %s\n", lines[8]);
+    //printf("L9 %s\n", lines[9]);
 
     double lat = get_d_value(lines[4]);
     double lon = get_d_value(lines[5]);
@@ -415,7 +417,8 @@ struct GPS * zerg3_encode(char **lines, FILE *packet)
     printf("Accuracy: %.0fm\n", accuracy);
 */
     fwrite(gps, 32, 1, packet);
-    return(gps);
+    free(gps);
+    return;
 }
 
 void

@@ -138,9 +138,9 @@ void zerg1_decode(FILE *words, struct ZergHeader *zh);
 void zerg2_decode(FILE *words);
 void zerg3_decode(FILE *words);
 
-struct Status * zerg1_encode(char **lines, FILE *packet);
+void zerg1_encode(char **lines, FILE *packet);
 int zerg2_encode(char **lines, FILE *packet);
-struct GPS * zerg3_encode(char **lines, FILE *packet);
+void zerg3_encode(char **lines, FILE *packet);
 
 int get_value(char* );
 char * extract(char * line);
