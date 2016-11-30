@@ -146,6 +146,8 @@ main(int argc,char *argv[])
     (*fh).MinorVer = 4;
     (*fh).LLT = 1;
     fwrite(fh, sizeof(*fh), 1, packet);
+    free(fh);
+
 for(int i = 0; i < packetcount; ++i){
     linecount = 0;
     printf("\nCURRENT PACKET: %s\n",packets[i]);
@@ -259,14 +261,14 @@ for(int i = 0; i < packetcount; ++i){
         int ip_len = 0;
         if(command_num % 2 == 0)
         {
-            p_len = 56;
+            p_len = 54 + 2;
             
             total_len = htonl(p_len)>>24;
             ip_len = 40 + 2;
         }
         else
         {
-            p_len = 62;
+            p_len = 54 + 8;
             
             total_len = htonl(p_len)>>24;
             ip_len = 40 + 8;
@@ -289,9 +291,9 @@ for(int i = 0; i < packetcount; ++i){
 
     else if (zerg_type == 3)
     {
-        int p_len = 70 + sizeof(struct GPS);
+        int p_len = 54 + sizeof(struct GPS);
         int total_len = htonl(p_len)>>24;
-        int ip_len = 40 + strlen(lines[4]);
+        int ip_len = 40 + sizeof(struct GPS);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
         (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
@@ -319,7 +321,7 @@ for(int i = 0; i < packetcount; ++i){
     }
 
 
-    free(fh);
+
     free(ph);
     free(eh);
     free(ih);

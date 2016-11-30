@@ -69,8 +69,6 @@ process_file(
     struct Ipv4Header *ih = calloc(sizeof(*ih), 1); //ip header
     struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
 
-
-
     fread(ph, sizeof(struct PcapHeader), 1, words);
 
     fread(eh, sizeof(struct EthernetHeader), 1, words);
@@ -82,7 +80,7 @@ process_file(
     //printf("Length of Data %x\n", htonl(ph->DataLen));
     int ip_len = htonl(ih->TotalLen) >> 16;
     if(length_of_data <= 0){
-        printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
+        //printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
         return(-1);
     }
 
