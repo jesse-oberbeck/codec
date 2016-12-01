@@ -232,10 +232,17 @@ void zerg2_decode(FILE *words)
     {
         int *P1 = calloc(2,1);
         fread(P1, 2, 1, words);
-        printf("P1: %d\n", *P1);
+        if(*P1)
+        {
+            printf("Add zerg to");
+        }
+        else
+        {
+            printf("Remove zerg from");
+        }
         int *P2 = calloc(4,1);
         fread(P2, 4, 1, words);
-        printf("P2: %d\n", *P2);
+        printf(": %d\n", *P2);
         free(P1);
         free(P2);
     }

@@ -242,16 +242,6 @@ for(int i = 0; i < packetcount; ++i){
 
     else if (zerg_type == 2)
     {
-    /*
-        (*ph).PackLen = total_len;
-        (*ph).DataLen = total_len;
-        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
-        //struct Command *zp = calloc(sizeof(*zp), 1);
-        fwrite(ph, sizeof(*ph), 1, packet);
-        fwrite(eh, sizeof(*eh), 1, packet);
-        fwrite(ih, sizeof(*ih), 1, packet);
-        fwrite(uh, sizeof(*uh), 1, packet);
-        fwrite(zh, sizeof(*zh), 1, packet);*/
         int command_num = zerg2_encode(lines, packet);
         char *bytes = " ";
         //sprintf(bytes, "%2x", command_num);
@@ -285,8 +275,24 @@ for(int i = 0; i < packetcount; ++i){
         fwrite(ih, sizeof(*ih), 1, packet);
         fwrite(uh, sizeof(*uh), 1, packet);
         fwrite(zh, sizeof(*zh), 1, packet);
+        command_num = htonl(command_num) >> 16;
+        fwrite(&command_num , 2, 1, packet);
+        //printf("L5: %d\n", get_value(lines[5]));
+        if(strstr(lines[5], "Add") != NULL)
+        {
+            int addFlag = 42;
+            fwrite(&addFlag, 2, 1, packet);
+            int groupId = get_value(lines[5]);
+            fwrite(&groupId, 4, 1, packet);
+        }
+        else if(strstr(lines[5], "Remove") != NULL)
+        {
+            int removeFlag = 0;
+            fwrite(&removeFlag, 2, 1, packet);
+            int groupId = get_value(lines[5]);
+            fwrite(&groupId, 4, 1, packet);
+        }
 
-        fwrite(&command_num , 2, 1,packet);
     }
 
     else if (zerg_type == 3)
