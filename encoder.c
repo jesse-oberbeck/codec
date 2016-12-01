@@ -8,11 +8,7 @@
 #include <arpa/inet.h>
 #include "structures.h"
 
-//PADDING: length_of_data - ip_len - 14
-//94 bytes before payload
 
-
-///////////////////////////////////////////////////////////////////////////////////
 /*Read in file.*/
 char * read_file(int filesize, FILE *words)
 {
@@ -44,7 +40,6 @@ int packet_count(char *contents)
         ++packetcount;
         word = strtok(NULL, "~");
     }
-    printf("file total packets: %d\n\n", packetcount - 1);
     return(packetcount - 1);
 }
 
@@ -104,7 +99,6 @@ void array_free(char **content_array, int wordcount)
     free(content_array);
 }
 
-///////////////////////////////////////////////////////////////////////////////////
 int
 main(int argc,char *argv[])
 {
@@ -133,7 +127,6 @@ main(int argc,char *argv[])
 
 for(int i = 0; i < packetcount; ++i){
     linecount = 0;
-    //printf("\nCURRENT PACKET: %s\n",packets[i]);
     char **lines = setup(&linecount, packets[i]);
     int zerg_type = get_value(lines[0]);
     //int sequence = get_value(lines[1]) + 1;
@@ -148,16 +141,10 @@ for(int i = 0; i < packetcount; ++i){
     struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
     struct ZergHeader *zh = calloc(sizeof(*zh), 1);
 
-
-
-    //(*ph).PackLen = htonl(108)>>24;
-    //(*ph).DataLen = htonl(108)>>24;
-
     (*eh).Etype = 2048;
 
     (*ih).Version = '\x4';
     (*ih).IHL = '\x5';
-    //(*ih).TotalLen = htonl(60)>>16;//Length of packet. 40 + payload
     (*ih).Protocol = '\x11';
 
     (*uh).Dport = 42766;
@@ -165,7 +152,6 @@ for(int i = 0; i < packetcount; ++i){
 
     (*zh).Version = '\x1';
     (*zh).Type = zerg_type;
-    //(*zh).TotalLen = htonl(24)>>8;
     (*zh).Sid = htonl(sid)>>16;
     (*zh).Did = htonl(did)>>16;
 
@@ -188,11 +174,9 @@ for(int i = 0; i < packetcount; ++i){
     if (zerg_type == 0)
     {
         int zerglen = 12 + strlen(lines[4]);
-        //printf("zerglen: %d\n", zerglen);
         int p_len = 42 + zerglen;
         int total_len = htonl(p_len)>>24;
         int ip_len = 28 + zerglen;
-        printf("l4: %s len: %d\n", lines[4], p_len - ip_len);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
         (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
@@ -207,11 +191,9 @@ for(int i = 0; i < packetcount; ++i){
     else if (zerg_type == 1)
     {
         int zerglen = (strlen(lines[4]) - 6);
-        //printf("!zerglen: %d\n", zerglen);
         int p_len = 54 + zerglen;
         int total_len = htonl(p_len)>>24;
         int ip_len = 40 + zerglen;
-        printf("l4: %s len: %d\n", lines[4], p_len - ip_len);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
         (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
