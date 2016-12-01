@@ -151,6 +151,12 @@ void zerg3_encode(
 
 int get_value(
     char *);
+
+double get_d_value(
+    char *string);
     
+float get_f_value(
+    char *string);
+
 char *extract(
     char *line);

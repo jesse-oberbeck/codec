@@ -200,6 +200,18 @@ void zerg2_decode(FILE *words)
         break;
     case (1):
         printf("GOTO\n");
+        unsigned int *distance = calloc(4,1);
+        fread(distance, 2, 1, words);
+        *distance = ntohl(*distance);
+        printf("Distance: %d\n", *distance);
+
+        uint32_t bearing_bin;
+        fread(&bearing_bin, 4, 1, words);
+        bearing_bin = ntohl(bearing_bin);
+        float bearing = convert_32(bearing_bin);
+        printf("Bearing: %f\n", bearing);
+        free(distance);
+
         break;
     case (2):
         printf("GET_GPS\n");
@@ -212,17 +224,6 @@ void zerg2_decode(FILE *words)
         break;
     case (5):
         printf("SET_GROUP\n");
-        break;
-    case (6):
-        printf("STOP\n");
-        break;
-    case (7):
-        printf("REPEAT\n");
-        break;
-    }
-
-    if (!(command % 2 == 0))
-    {
         int *P1 = calloc(4,1);
         fread(P1, 2, 1, words);
         if(*P1)
@@ -238,7 +239,15 @@ void zerg2_decode(FILE *words)
         printf(": %d\n", *P2);
         free(P1);
         free(P2);
+        break;
+    case (6):
+        printf("STOP\n");
+        break;
+    case (7):
+        printf("REPEAT\n");
+        break;
     }
+
 
     free(cm);
 }

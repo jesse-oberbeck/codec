@@ -240,6 +240,12 @@ for(int i = 0; i < packetcount; ++i){
 
         if(command_num % 2 != 0)
         {
+
+            if(!lines[5])
+            {
+                fprintf(stderr, "Incomplete information for status packet.\n");
+                return(1);
+            }
             command_num = htonl(command_num) >> 16;
             fwrite(&command_num , 2, 1, packet);
             if(strstr(lines[5], "Add") != NULL)
@@ -256,6 +262,23 @@ for(int i = 0; i < packetcount; ++i){
                 int groupId = get_value(lines[5]);
                 fwrite(&groupId, 4, 1, packet);
             }
+
+            else if(strstr(lines[5], "Distance") != NULL)
+            {
+                if(!lines[6])
+                {
+                    fprintf(stderr, "Incomplete information for GOTO packet.\n");
+                    return(1);
+                }
+                unsigned int distance = htonl(get_value(lines[5]));
+                printf("Distance: %x\n", distance);
+                fwrite(&distance, 2, 1, packet);
+                float bearing = get_f_value(lines[6]);
+                uint32_t bear_bin = htonl(rev_convert_32(bearing));
+                printf("Bearing: %lx\n", bear_bin);
+                fwrite(&bear_bin, 4, 1, packet);
+            }
+
         }
         else
         {
