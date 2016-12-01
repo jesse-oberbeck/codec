@@ -67,6 +67,7 @@ char ** initialize(int *packetcount, const char *filename)
         splitstring = strtok(NULL, "~");
 
     }
+    free(content_array[*packetcount]);
     free(contents);
     free(contents2);
     return(content_array);
@@ -75,14 +76,11 @@ char ** initialize(int *packetcount, const char *filename)
 char ** setup(int *linecount, char *packet)
 {
     char *contents = packet;
-    /////
     char *contents2 = calloc(strlen(packet) + 1, 1);
     strncpy(contents2, contents, strlen(contents));
-    /////
     *linecount = line_count(contents);
-
     char **content_array;
-    content_array = malloc(*linecount * (int)(sizeof(char*) + 1));    
+    content_array = calloc(*linecount * (int)(sizeof(char*) + 1), 1);    
     char *splitstring = strtok(contents2, "\n");
     int i = 0;
     while((splitstring) && strcmp(splitstring,"\n") != 0){
@@ -229,7 +227,7 @@ for(int i = 0; i < packetcount; ++i){
 
     else if (zerg_type == 2)
     {
-        int command_num = zerg2_encode(lines, packet);
+        int command_num = zerg2_encode(lines);
         int p_len = 0;
         int total_len = 0;
         int ip_len = 0;

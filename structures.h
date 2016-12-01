@@ -54,7 +54,7 @@ struct __attribute__ ((__packed__)) Ipv4Header
 struct __attribute__ ((__packed__)) UdpHeader
 {
     int Sport:16;
-    unsigned  int Dport:16;
+    unsigned int Dport:16;
     int Len:16;
     int CheckSum:16;
 };
@@ -90,6 +90,7 @@ struct __attribute__ ((__packed__)) Status
 struct __attribute__ ((__packed__)) Command
 {
     int Command:16;
+
     //int Param1:16;
     //int Param2:32;
 };
@@ -104,43 +105,52 @@ struct __attribute__ ((__packed__)) GPS
     int Acc:32;
 };
 
-int
-process_file(
+int process_file(
     FILE * words);
-    
-void
-process_zerg_header(
+
+void process_zerg_header(
     FILE * words,
     struct ZergHeader *zh,
     struct Container *c);
 
-int
-file_size(
+int file_size(
     FILE * words);
 
-float
-convert_32(
+float convert_32(
     uint32_t num);
 
-double
-convert_64(
+double convert_64(
     uint64_t num);
 
-uint64_t
-rev_convert_64(
+uint64_t rev_convert_64(
     double num);
-    
-uint32_t
-rev_convert_32(
+
+uint32_t rev_convert_32(
     float num);
 
-void zerg1_decode(FILE *words, struct ZergHeader *zh);
-void zerg2_decode(FILE *words);
-void zerg3_decode(FILE *words);
+void zerg1_decode(
+    FILE * words,
+    struct ZergHeader *zh);
 
-void zerg1_encode(char **lines, FILE *packet);
-int zerg2_encode(char **lines, FILE *packet);
-void zerg3_encode(char **lines, FILE *packet);
+void zerg2_decode(
+    FILE * words);
 
-int get_value(char* );
-char * extract(char * line);
+void zerg3_decode(
+    FILE * words);
+
+void zerg1_encode(
+    char **lines,
+    FILE * packet);
+
+int zerg2_encode(
+    char **lines);
+
+void zerg3_encode(
+    char **lines,
+    FILE * packet);
+
+int get_value(
+    char *);
+    
+char *extract(
+    char *line);

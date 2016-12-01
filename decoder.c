@@ -60,7 +60,7 @@ main(int argc,char *argv[])
         //printf("Zerg Len: %d\n", total_len);
         if (zerg_type == 0)
         {
-            char *message = calloc(total_len, 1);
+            char *message = calloc(total_len + 1, 1);
 
             fread(message, total_len, 1, words);
             printf("%s\n", message);
