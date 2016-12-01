@@ -275,24 +275,34 @@ for(int i = 0; i < packetcount; ++i){
         fwrite(ih, sizeof(*ih), 1, packet);
         fwrite(uh, sizeof(*uh), 1, packet);
         fwrite(zh, sizeof(*zh), 1, packet);
-        command_num = htonl(command_num) >> 16;
-        fwrite(&command_num , 2, 1, packet);
-        //printf("L5: %d\n", get_value(lines[5]));
-        if(strstr(lines[5], "Add") != NULL)
-        {
-            int addFlag = 42;
-            fwrite(&addFlag, 2, 1, packet);
-            int groupId = get_value(lines[5]);
-            fwrite(&groupId, 4, 1, packet);
-        }
-        else if(strstr(lines[5], "Remove") != NULL)
-        {
-            int removeFlag = 0;
-            fwrite(&removeFlag, 2, 1, packet);
-            int groupId = get_value(lines[5]);
-            fwrite(&groupId, 4, 1, packet);
-        }
 
+        if(command_num % 2 != 0)
+        {
+            command_num = htonl(command_num) >> 16;
+            fwrite(&command_num , 2, 1, packet);
+            puts("WTF");
+            char *addRemove = strstr(lines[5], "Add");
+            printf("AR %s\n", addRemove);
+            if(strstr(lines[5], "Add") != NULL)
+            {
+                int addFlag = htonl(42);
+                fwrite(&addFlag, 2, 1, packet);
+                int groupId = get_value(lines[5]);
+                fwrite(&groupId, 4, 1, packet);
+            }
+            else if(strstr(lines[5], "Remove") != NULL)
+            {
+                int removeFlag = 0;
+                fwrite(&removeFlag, 2, 1, packet);
+                int groupId = get_value(lines[5]);
+                fwrite(&groupId, 4, 1, packet);
+            }
+        }
+        else
+        {
+            command_num = htonl(command_num) >> 16;
+            fwrite(&command_num , 2, 1, packet);
+        }
     }
 
     else if (zerg_type == 3)
@@ -335,9 +345,10 @@ for(int i = 0; i < packetcount; ++i){
     free(uh);
     free(zh);
 
-    array_free(lines, linecount);
-    free(packets);
+    //array_free(lines, linecount);
+
 }
+    free(packets);
     fclose(packet);
     return(0);
 }
