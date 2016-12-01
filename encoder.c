@@ -12,25 +12,11 @@
 //94 bytes before payload
 
 
-
-/*Get size of file*/
-int file_size2(FILE *words)
-{
-
-    long start = ftell(words);
-    fseek(words, 0, SEEK_END);
-    long end = ftell(words);
-    int filesize = (end - start) + 1;
-    //printf("\nfilesize: %i\n", filesize);
-    fseek(words, 0, SEEK_SET);
-    return(filesize);
-}
-
 ///////////////////////////////////////////////////////////////////////////////////
 /*Read in file.*/
 char * read_file(int filesize, FILE *words)
 {
-    char *contents = calloc(filesize, 1);
+    char *contents = calloc(filesize + 1, 1);
     fread(contents, sizeof(char), filesize, words);
     fclose(words);
     return(contents);
@@ -190,6 +176,11 @@ for(int i = 0; i < packetcount; ++i){
     if(!packet)
     {
         fprintf(stderr, "Failed to open file!");
+        free(ph);
+        free(eh);
+        free(ih);
+        free(uh);
+        free(zh);
         return(1);
     }
 
