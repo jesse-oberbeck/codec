@@ -70,14 +70,12 @@ process_file(
     struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
 
     fread(ph, sizeof(struct PcapHeader), 1, words);
-
     fread(eh, sizeof(struct EthernetHeader), 1, words);
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
 
     /*  Printing Header Information  */
     int length_of_data = htonl(ph->DataLen) >> 24;
-    //printf("Length of Data %x\n", htonl(ph->DataLen));
     int ip_len = htonl(ih->TotalLen) >> 16;
     if(length_of_data <= 0){
         //printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
@@ -125,13 +123,11 @@ char * extract(char * line)
 {
     //Extract from line of file.
     int i = 0;
-    //char *result = calloc(32, 1);
     char *name = line;
     char *split_name = strtok(name, ": /");
     while(split_name != NULL)
     {
         if(i == 1){
-            //strcpy(result, split_name);
             return(split_name);
         }
         ++i;

@@ -30,7 +30,7 @@ int file_size2(FILE *words)
 /*Read in file.*/
 char * read_file(int filesize, FILE *words)
 {
-    char *contents = malloc(filesize);
+    char *contents = calloc(filesize, 1);
     fread(contents, sizeof(char), filesize, words);
     fclose(words);
     return(contents);
@@ -47,7 +47,6 @@ int line_count(char *contents)
         wordcount++;
         word = strtok(NULL, "\n");
     }
-    //printf("file total wordcount: %d\n\n", wordcount);
     return(wordcount);
 }
 
@@ -56,7 +55,7 @@ int packet_count(char *contents)
     char *word = strtok(contents, "~");
     int packetcount = 0;
     while(word != NULL){
-        packetcount++;
+        ++packetcount;
         word = strtok(NULL, "~");
     }
     printf("file total packets: %d\n\n", packetcount - 1);
@@ -68,21 +67,21 @@ char ** initialize(int *packetcount, const char *filename)
     FILE *words = fopen(filename, "r");
     int filesize = file_size(words);
     char *contents = read_file(filesize, words);
-    char *contents2 = calloc(contents, 1);
+    char *contents2 = calloc(filesize + 1, 1);
     strncpy(contents2, contents, strlen(contents));
     *packetcount = packet_count(contents);
-    free(contents);
     char **content_array;
-    content_array = malloc(*packetcount * (int)(sizeof(char*) + 1));    
+    content_array = calloc(*packetcount * (int)(sizeof(char*) + 1), 1);
     char *splitstring = strtok(contents2, "~");
     int i = 0;
-    while(splitstring){
+    while(splitstring != NULL){
         content_array[i] = calloc(strlen(splitstring) + 1, 1);
         strncpy(content_array[i], splitstring, strlen(splitstring));
         i++;
         splitstring = strtok(NULL, "~");
 
     }
+    free(contents);
     free(contents2);
     return(content_array);
 }
@@ -91,11 +90,11 @@ char ** setup(int *linecount, char *packet)
 {
     char *contents = packet;
     /////
-    char *contents2 = malloc(strlen(packet));
+    char *contents2 = calloc(strlen(packet) + 1, 1);
     strncpy(contents2, contents, strlen(contents));
     /////
     *linecount = line_count(contents);
-    free(contents);
+
     char **content_array;
     content_array = malloc(*linecount * (int)(sizeof(char*) + 1));    
     char *splitstring = strtok(contents2, "\n");
@@ -107,6 +106,7 @@ char ** setup(int *linecount, char *packet)
         splitstring = strtok(NULL, "\n");
 
     }
+    free(contents);
     free(contents2);
     return(content_array);
 }
@@ -137,7 +137,6 @@ main(int argc,char *argv[])
     }
     int packetcount = 0;
     int linecount = 0;
-    int payload_size = 0;
     char **packets = initialize(&packetcount, argv[1]);
     FILE *packet = fopen(argv[2], "wb+");
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
@@ -196,7 +195,7 @@ for(int i = 0; i < packetcount; ++i){
 
 
 
-
+    --linecount;
     if (zerg_type == 0)
     {
         int zerglen = 12 + strlen(lines[4]);
@@ -227,8 +226,6 @@ for(int i = 0; i < packetcount; ++i){
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
         (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
-        //struct Status *zp = calloc(sizeof(*zp), 1);
-        char *name = lines[4];
         
         (*zh).TotalLen = htonl(zerglen)>>8;
         fwrite(ph, sizeof(*ph), 1, packet);
@@ -237,15 +234,11 @@ for(int i = 0; i < packetcount; ++i){
         fwrite(uh, sizeof(*uh), 1, packet);
         fwrite(zh, sizeof(*zh), 1, packet);
         zerg1_encode(lines, packet);
-        printf("packet len: %d ip len: %d\n", p_len, ip_len);
     }
 
     else if (zerg_type == 2)
     {
         int command_num = zerg2_encode(lines, packet);
-        char *bytes = " ";
-        //sprintf(bytes, "%2x", command_num);
-
         int p_len = 0;
         int total_len = 0;
         int ip_len = 0;
@@ -263,8 +256,6 @@ for(int i = 0; i < packetcount; ++i){
             total_len = htonl(p_len)>>24;
             ip_len = 40 + 8;
         }
-        printf("packet len: %d ip len: %d\n", p_len, ip_len);
-
 
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
@@ -280,9 +271,6 @@ for(int i = 0; i < packetcount; ++i){
         {
             command_num = htonl(command_num) >> 16;
             fwrite(&command_num , 2, 1, packet);
-            puts("WTF");
-            char *addRemove = strstr(lines[5], "Add");
-            printf("AR %s\n", addRemove);
             if(strstr(lines[5], "Add") != NULL)
             {
                 int addFlag = htonl(42);
@@ -345,7 +333,7 @@ for(int i = 0; i < packetcount; ++i){
     free(uh);
     free(zh);
 
-    //array_free(lines, linecount);
+    array_free(lines, linecount);
 
 }
     free(packets);
