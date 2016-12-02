@@ -11,7 +11,8 @@
 #include <ctype.h>
 #include "structures.h"
 
-int get_value(char *string)
+int get_value(
+    char *string)
 {
     int len = strlen(string);
     for(int i = 0; i < len; ++i)
@@ -25,7 +26,8 @@ int get_value(char *string)
     return(value);
 }
 
-double get_d_value(char *string)
+double get_d_value(
+    char *string)
 {
     int len = strlen(string);
     for(int i = 0; i < len; ++i)
@@ -39,7 +41,8 @@ double get_d_value(char *string)
     return(value);
 }
 
-float get_f_value(char *string)
+float get_f_value(
+    char *string)
 {
     int len = strlen(string);
     for(int i = 0; i < len; ++i)
@@ -53,8 +56,7 @@ float get_f_value(char *string)
     return(value);
 }
 
-int
-process_file(
+int process_file(
     FILE * words)
 {
 
@@ -82,7 +84,9 @@ process_file(
     return(length_of_data - ip_len - 14);
 }
 
-void zerg1_decode(FILE *words, struct ZergHeader *zh)
+void zerg1_decode(
+    FILE *words,
+    struct ZergHeader *zh)
 {
     struct Status *st = calloc(sizeof(*st), 1);
 
@@ -110,7 +114,8 @@ void zerg1_decode(FILE *words, struct ZergHeader *zh)
 
 }
 
-char * extract(char * line)
+char * extract(
+    char * line)
 {
     //Extract from line of file.
     int i = 0;
@@ -127,7 +132,9 @@ char * extract(char * line)
     return(name);
 }
 
-void zerg1_encode(char **lines, FILE *packet)
+void zerg1_encode(
+    char **lines,
+    FILE *packet)
 {
     struct Status *st = calloc(sizeof(*st), 1);
     char *name = extract(lines[4]);
@@ -166,7 +173,8 @@ void zerg1_encode(char **lines, FILE *packet)
 
 }
 
-void zerg2_decode(FILE *words)
+void zerg2_decode(
+    FILE *words)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
 
@@ -232,7 +240,8 @@ void zerg2_decode(FILE *words)
     free(cm);
 }
 
-int zerg2_encode(char **lines)
+int zerg2_encode(
+    char **lines)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
     char *comm = lines[4];
@@ -281,7 +290,8 @@ int zerg2_encode(char **lines)
     return(command_num);
 }
 
-void zerg3_decode(FILE *words)
+void zerg3_decode(
+    FILE *words)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
@@ -328,7 +338,9 @@ void zerg3_decode(FILE *words)
     free(gps);
 }
 
-void zerg3_encode(char **lines, FILE *packet)
+void zerg3_encode(
+    char **lines,
+    FILE *packet)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
@@ -369,8 +381,7 @@ void zerg3_encode(char **lines, FILE *packet)
     return;
 }
 
-void
-process_zerg_header(
+void process_zerg_header(
     FILE * words,
     struct ZergHeader *zh,
     struct Container *c)
@@ -391,8 +402,7 @@ process_zerg_header(
 }
 
 /*Get end of file */
-int
-file_size(
+int file_size(
     FILE * words)
 {
 
@@ -403,8 +413,7 @@ file_size(
     return (end);
 }
 
-float
-convert_32(
+float convert_32(
     uint32_t num)
 {
     union
@@ -419,8 +428,7 @@ convert_32(
     return (result);
 }
 
-uint32_t
-rev_convert_32(
+uint32_t rev_convert_32(
     float num)
 {
     union
@@ -435,8 +443,7 @@ rev_convert_32(
     return (result);
 }
 
-double
-convert_64(
+double convert_64(
     uint64_t num)
 {
     union
@@ -453,8 +460,7 @@ convert_64(
     return (result);
 }
 
-uint64_t
-rev_convert_64(
+uint64_t rev_convert_64(
     double num)
 {
     union

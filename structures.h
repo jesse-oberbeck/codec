@@ -154,7 +154,7 @@ int get_value(
 
 double get_d_value(
     char *string);
-    
+
 float get_f_value(
     char *string);
 
