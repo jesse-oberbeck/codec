@@ -17,7 +17,7 @@ main(
     char *argv[])
 {
 
-//Check for file name provided as arg.
+    //Check for file name provided as arg.
     if (argc < 2)
     {
         fprintf(stderr, "Please provide a file name.\n");
@@ -26,7 +26,7 @@ main(
     else if (access(argv[1], F_OK) == -1)
     {
         fprintf(stderr, "Invalid file name.\n");
-        return(1);
+        return (1);
     }
 
     char *file = argv[1];
@@ -34,8 +34,9 @@ main(
     int result = 0;
     int end_pos = file_size(words);
 
-//Reads in file header once.
+    //Reads in file header once.
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
+
     fread(fh, sizeof(struct FileHeader), 1, words);
     //printf("LLT: %x\n", fh->MajorVer);
     free(fh);
@@ -45,21 +46,22 @@ main(
     struct ZergHeader *zh = calloc(sizeof(*zh), 1);
     struct Container *c = calloc(sizeof(*c), 1);
 
-//Loop to handle individual packets begins here.
-    while(current_pos != end_pos)
+    //Loop to handle individual packets begins here.
+    while (current_pos != end_pos)
     {
         result = process_file(words);
-        if(result < 0)
+        if (result < 0)
         {
             free(zh);
             free(c);
             fclose(words);
-            return(0);
+            return (0);
         }
 
         process_zerg_header(words, zh, c);
         int zerg_type = c->zerg_type;
         int total_len = (htonl(zh->TotalLen) >> 8) - 12;
+
         //printf("Zerg Len: %d\n", total_len);
         if (zerg_type == 0)
         {
@@ -85,15 +87,15 @@ main(
             zerg3_decode(words);
         }
 
-    if(result > 0)
-    {
-        fseek(words, result, SEEK_CUR);
-    }
-    current_pos = ftell(words);
-    puts("~");
+        if (result > 0)
+        {
+            fseek(words, result, SEEK_CUR);
+        }
+        current_pos = ftell(words);
+        puts("~");
     }
     free(zh);
     free(c);
     fclose(words);
-    return(0);
+    return (0);
 }
