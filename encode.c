@@ -177,6 +177,7 @@ for(int i = 0; i < packetcount; ++i){
         int p_len = 42 + zerglen;
         int total_len = htonl(p_len)>>24;
         int ip_len = 28 + zerglen;
+        (*uh).Len = htonl(8 + zerglen);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
         (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
@@ -194,6 +195,7 @@ for(int i = 0; i < packetcount; ++i){
         int p_len = 54 + zerglen;
         int total_len = htonl(p_len)>>24;
         int ip_len = 40 + zerglen;
+        (*uh).Len = htonl(8 + zerglen);
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
         (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
@@ -213,23 +215,26 @@ for(int i = 0; i < packetcount; ++i){
         int p_len = 0;
         int total_len = 0;
         int ip_len = 0;
+        int udpLength = 0;
         if(command_num % 2 == 0)
         {
             p_len = 54 + 2;
-            
+            udpLength = 20 + 2;
             total_len = htonl(p_len)>>24;
             ip_len = 40 + 2;
         }
         else
         {
             p_len = 54 + 8;
-            
+            udpLength = 20 + 8;
             total_len = htonl(p_len)>>24;
             ip_len = 40 + 8;
         }
 
+        (*zh).TotalLen = htonl(udpLength - 8)>>8;
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
+        (*uh).Len = htonl(udpLength);
         (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
         //struct Command *zp = calloc(sizeof(*zp), 1);
         fwrite(ph, sizeof(*ph), 1, packet);
@@ -290,6 +295,8 @@ for(int i = 0; i < packetcount; ++i){
         int p_len = 54 + sizeof(struct GPS);
         int total_len = htonl(p_len)>>24;
         int ip_len = 40 + sizeof(struct GPS);
+        (*uh).Len = 8 + sizeof(struct GPS);
+        (*zh).TotalLen = htonl(sizeof(struct GPS))>>8;
         (*ph).PackLen = total_len;
         (*ph).DataLen = total_len;
         (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
