@@ -14,7 +14,6 @@
 int get_value(char *string)
 {
     int len = strlen(string);
-    //printf("string: %s len: %d\n", string, len);
     for(int i = 0; i < len; ++i)
     {
         if((isalpha(string[i]) != 0) || string[i] == ':')
@@ -22,7 +21,6 @@ int get_value(char *string)
             string[i] = ' ';
         }
     }
-    //printf("string: %s len: %d\n", string, len);
     int value = strtol(string, NULL, 10);
     return(value);
 }
@@ -30,7 +28,6 @@ int get_value(char *string)
 double get_d_value(char *string)
 {
     int len = strlen(string);
-    //printf("string: %s len: %d\n", string, len);
     for(int i = 0; i < len; ++i)
     {
         if((isalpha(string[i]) != 0) || string[i] == ':'|| string[i] == '/')
@@ -38,7 +35,6 @@ double get_d_value(char *string)
             string[i] = ' ';
         }
     }
-    //printf("string: %s len: %d\n", string, len);
     double value = strtod(string, NULL);
     return(value);
 }
@@ -46,7 +42,6 @@ double get_d_value(char *string)
 float get_f_value(char *string)
 {
     int len = strlen(string);
-    //printf("string: %s len: %d\n", string, len);
     for(int i = 0; i < len; ++i)
     {
         if((isalpha(string[i]) != 0) || string[i] == ':'|| string[i] == '/')
@@ -54,7 +49,6 @@ float get_f_value(char *string)
             string[i] = ' ';
         }
     }
-    //printf("string: %s len: %d\n", string, len);
     float value = strtof(string, NULL);
     return(value);
 }
@@ -74,11 +68,9 @@ process_file(
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
 
-    /*  Printing Header Information  */
     int length_of_data = htonl(ph->DataLen) >> 24;
     int ip_len = htonl(ih->TotalLen) >> 16;
     if(length_of_data <= 0){
-        //printf("Length of Data Captured is %d.\nEmpty file.\n", length_of_data);
         return(-1);
     }
 
@@ -97,7 +89,6 @@ void zerg1_decode(FILE *words, struct ZergHeader *zh)
     fread(st, sizeof(struct Status), 1, words);
     int nameLen = (htonl(zh->TotalLen) >> 8);// - 24;
 
-    //printf("Zerg Len: %d\n", nameLen);
     char *message = calloc(nameLen + 1, 1);
 
     fread(message, nameLen, 1, words);
@@ -140,20 +131,14 @@ void zerg1_encode(char **lines, FILE *packet)
 {
     struct Status *st = calloc(sizeof(*st), 1);
     char *name = extract(lines[4]);
-    printf("Name: %s\n", name);
-    
+
     char *total_hp = extract(lines[5]);
-    //printf("HP: %s\n", total_hp);
     int remaining_hp  = get_value(total_hp);
     int max_hp = get_value(extract(total_hp));
-    //printf("MAXHP: %d\n", max_hp);
-    //printf("HP LEFT: %d\n", remaining_hp);
-
 
     st->HP = htonl(remaining_hp) >> 8;
     st->MaxHP = htonl(max_hp) >> 8;
     char * unit_type = extract(lines[6]);
-    printf("Type: %s\n", unit_type);
 
     const char *type_array[] = {"Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone", "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk", "Mutalisk", "Defiler", "Devourer"};
     int type = 0;
@@ -165,17 +150,13 @@ void zerg1_encode(char **lines, FILE *packet)
             break;
         }
     }
-    printf("Type Code: %d\n", type);
     st->Type = htonl(type) >> 24;
 
     int armor = get_value(lines[7]);
-    printf("Armor: %d\n", armor);
     st->Armor = htonl(armor) >> 8;
     
     float speed = get_f_value(lines[8]);
-    printf("Speed: %f\n", speed);
     uint32_t pack_speed = htonl(rev_convert_32(speed));
-    printf("pack speed: %x\n", pack_speed);
     st->Speed = pack_speed;
     
     fwrite(st,12, 1, packet);
@@ -191,7 +172,6 @@ void zerg2_decode(FILE *words)
 
     fread(cm, sizeof(struct Command), 1, words);
     long command = htonl(cm->Command) >> 16;
-    //printf("Command hex: %x\n", command);
 
     switch (command)
     {
@@ -202,7 +182,7 @@ void zerg2_decode(FILE *words)
         printf("GOTO\n");
         unsigned int *distance = calloc(4,1);
         fread(distance, 2, 1, words);
-        *distance = ntohl(*distance);
+
         printf("Distance: %d\n", *distance);
 
         uint32_t bearing_bin;
@@ -351,16 +331,9 @@ void zerg3_decode(FILE *words)
 void zerg3_encode(char **lines, FILE *packet)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
-    //printf("L4 %s\n", lines[4]);
-    //printf("L5 %s\n", lines[5]);
-    //printf("L6 %s\n", lines[6]);
-    //printf("L7 %s\n", lines[7]);
-    //printf("L8 %s\n", lines[8]);
-    //printf("L9 %s\n", lines[9]);
 
     double lat = get_d_value(lines[4]);
     double lon = get_d_value(lines[5]);
-    printf ("%lf\n%lf\n", lat, lon);
 
     if (strstr(lines[4], "S") != NULL)
     {
@@ -391,12 +364,6 @@ void zerg3_encode(char **lines, FILE *packet)
     gps->Speed = speed_bin;
     gps->Acc = acc_bin;
 
-/*
-    printf("Altitude: %.1fm\n", altitude * 1.8288); //Multiplying by 1.8288 to convert fathoms to meters.
-    printf("Bearing: %f deg\n", bearing);
-    printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
-    printf("Accuracy: %.0fm\n", accuracy);
-*/
     fwrite(gps, 32, 1, packet);
     free(gps);
     return;

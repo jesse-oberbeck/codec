@@ -52,7 +52,7 @@ char ** initialize(int *packetcount, const char *filename)
     strncpy(contents2, contents, strlen(contents));
     *packetcount = packet_count(contents);
     char **content_array;
-    content_array = calloc(*packetcount * (int)(sizeof(char*) + 1), 1);
+    content_array = calloc((*packetcount + 1) * (int)(sizeof(char*)), 1);
     char *splitstring = strtok(contents2, "~");
     int i = 0;
     while(splitstring != NULL){
@@ -270,12 +270,10 @@ for(int i = 0; i < packetcount; ++i){
                     fprintf(stderr, "Incomplete information for GOTO packet.\n");
                     return(1);
                 }
-                unsigned int distance = htonl(get_value(lines[5]));
-                printf("Distance: %x\n", distance);
+                unsigned int distance = get_value(lines[5]);
                 fwrite(&distance, 2, 1, packet);
                 float bearing = get_f_value(lines[6]);
                 uint32_t bear_bin = htonl(rev_convert_32(bearing));
-                printf("Bearing: %lx\n", bear_bin);
                 fwrite(&bear_bin, 4, 1, packet);
             }
 
