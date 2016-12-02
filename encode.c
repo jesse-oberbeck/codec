@@ -10,7 +10,9 @@
 
 
 /*Read in file.*/
-char * read_file(int filesize, FILE *words)
+char * read_file(
+    int filesize,
+    FILE *words)
 {
     char *contents = calloc(filesize + 1, 1);
     fread(contents, sizeof(char), filesize, words);
@@ -21,7 +23,8 @@ char * read_file(int filesize, FILE *words)
 /*Line count. Tokenizes file based on newline, 
 increasing a counter on each word.
 returns the value held in the counter.*/
-int line_count(char *contents)
+int line_count(
+    char *contents)
 {
     char *word = strtok(contents, "\n");
     int wordcount = 0;
@@ -32,7 +35,8 @@ int line_count(char *contents)
     return(wordcount);
 }
 
-int packet_count(char *contents)
+int packet_count(
+    char *contents)
 {
     char *word = strtok(contents, "~");
     int packetcount = 0;
@@ -43,7 +47,9 @@ int packet_count(char *contents)
     return(packetcount - 1);
 }
 
-char ** initialize(int *packetcount, const char *filename)
+char ** initialize(
+    int *packetcount,
+    const char *filename)
 {
     FILE *words = fopen(filename, "r");
     int filesize = file_size(words);
@@ -68,7 +74,9 @@ char ** initialize(int *packetcount, const char *filename)
     return(content_array);
 }
 
-char ** setup(int *linecount, char *packet)
+char ** setup(
+    int *linecount,
+    char *packet)
 {
     char *contents = packet;
     char *contents2 = calloc(strlen(packet) + 1, 1);
@@ -91,7 +99,9 @@ char ** setup(int *linecount, char *packet)
 }
 
 /*Frees allocated space in array, then array itself.*/
-void array_free(char **content_array, int wordcount)
+void array_free(
+    char **content_array,
+    int wordcount)
 {
     for(int i = 0; i <= wordcount; ++i){
         free(content_array[i]);
@@ -100,7 +110,9 @@ void array_free(char **content_array, int wordcount)
 }
 
 int
-main(int argc,char *argv[])
+main(
+    int argc,
+    char *argv[])
 {
 //Check for file name provided as arg.
     if (argc < 2)
@@ -251,8 +263,10 @@ main(int argc,char *argv[])
                     fprintf(stderr, "Incomplete information for status packet.\n");
                     return(1);
                 }
+
                 command_num = htonl(command_num) >> 16;
                 fwrite(&command_num , 2, 1, packet);
+
                 if(strstr(lines[5], "Add") != NULL)
                 {
                     int addFlag = htonl(42);
@@ -283,6 +297,7 @@ main(int argc,char *argv[])
                 }
 
             }
+
             else
             {
                 command_num = htonl(command_num) >> 16;
@@ -308,7 +323,7 @@ main(int argc,char *argv[])
             fwrite(zh, sizeof(*zh), 1, packet);
             zerg3_encode(lines, packet);
         }
-        
+
         else
         {
             fprintf(stderr, "Invalid packet instructions. Closing.");
