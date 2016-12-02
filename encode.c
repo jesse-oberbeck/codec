@@ -154,6 +154,7 @@ main(
     (*fh).FileType = htonl((unsigned int) 3569595041);  //"\xD4\xC3\xB2\xA1"
     (*fh).MajorVer = 2;
     (*fh).MinorVer = 4;
+    (*fh).MaxLen = 65535;
     (*fh).LLT = 1;
     fwrite(fh, sizeof(*fh), 1, packet);
     free(fh);
@@ -181,8 +182,8 @@ main(
         (*ih).Version = '\x4';
         (*ih).IHL = '\x5';
         (*ih).Protocol = 17;
-
-        (*uh).Dport = 42766;
+        (*uh).Sport = htonl(8);
+        (*uh).Dport = htonl(4276);
         //uh.Length
 
         (*zh).Version = '\x1';
@@ -228,9 +229,9 @@ main(
         else if (zerg_type == 1)
         {
             int zerglen = (strlen(lines[4]) - 6);
-            int p_len = 54 + zerglen;
+            int p_len = 54 + sizeof(struct Status) + zerglen;
             int total_len = htonl(p_len) >> 24;
-            int ip_len = 40 + zerglen;
+            int ip_len = 40 + sizeof(struct Status) +zerglen;
 
             (*uh).Len = htonl(8 + zerglen);
             (*ph).PackLen = total_len;
@@ -253,6 +254,11 @@ main(
             int total_len = 0;
             int ip_len = 0;
             int udpLength = 0;
+            
+            if(command_num < 0)
+            {
+                fprintf(stderr, "Invalid command.");
+            }
 
             if (command_num % 2 == 0)
             {
@@ -336,6 +342,11 @@ main(
                     fwrite(&sequence, 2, 1, packet);
                     fwrite(&sequence, 4, 1, packet);
 
+                }
+                
+                else
+                {
+                    fprintf(stderr, "Incorrect packet information.");
                 }
 
             }

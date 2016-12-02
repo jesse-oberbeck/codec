@@ -292,39 +292,45 @@ zerg2Encode(
     {
     }
 
-    if ((strcmp(comm, "GOTO") == 0) || (strcmp(comm, "GOTO\n") == 0))
+    else if ((strcmp(comm, "GOTO") == 0) || (strcmp(comm, "GOTO\n") == 0))
     {
         commandNum = 1;
     }
 
-    if ((strcmp(comm, "GET_GPS") == 0) || (strcmp(comm, "GET_GPS\n") == 0))
+    else if ((strcmp(comm, "GET_GPS") == 0) || (strcmp(comm, "GET_GPS\n") == 0))
     {
         commandNum = 2;
     }
 
-    if ((strcmp(comm, "RESERVED") == 0) || (strcmp(comm, "RESERVED\n") == 0))
+    else if ((strcmp(comm, "RESERVED") == 0) || (strcmp(comm, "RESERVED\n") == 0))
     {
         commandNum = 3;
     }
 
-    if ((strcmp(comm, "RETURN") == 0) || (strcmp(comm, "RETURN\n") == 0))
+    else if ((strcmp(comm, "RETURN") == 0) || (strcmp(comm, "RETURN\n") == 0))
     {
         commandNum = 4;
     }
 
-    if ((strcmp(comm, "SET_GROUP") == 0) || (strcmp(comm, "SET_GROUP\n") == 0))
+    else if ((strcmp(comm, "SET_GROUP") == 0) || (strcmp(comm, "SET_GROUP\n") == 0))
     {
         commandNum = 5;
     }
 
-    if ((strcmp(comm, "STOP") == 0) || (strcmp(comm, "STOP\n") == 0))
+    else if ((strcmp(comm, "STOP") == 0) || (strcmp(comm, "STOP\n") == 0))
     {
         commandNum = 6;
     }
 
-    if ((strcmp(comm, "REPEAT") == 0) || (strcmp(comm, "REPEAT\n") == 0))
+    else if ((strcmp(comm, "REPEAT") == 0) || (strcmp(comm, "REPEAT\n") == 0))
     {
         commandNum = 7;
+    }
+
+    else
+    {
+        free(cm);
+        return(-1);
     }
 
     free(cm);
