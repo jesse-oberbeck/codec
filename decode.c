@@ -12,8 +12,11 @@
 
 
 int
-main(int argc,char *argv[])
+main(
+    int argc,
+    char *argv[])
 {
+
 //Check for file name provided as arg.
     if (argc < 2)
     {
@@ -82,7 +85,8 @@ main(int argc,char *argv[])
             zerg3_decode(words);
         }
 
-    if(result > 0){
+    if(result > 0)
+    {
         fseek(words, result, SEEK_CUR);
     }
     current_pos = ftell(words);
