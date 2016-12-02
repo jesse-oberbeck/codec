@@ -7,17 +7,19 @@ CPPFLAGS+=-Wall -Wextra -Wpedantic -Wwrite-strings -Wstack-usage=1024 -Wfloat-eq
 decode: codec_functions.o
 encode: codec_functions.o
 
-CFLAGS+=-std=c11 -g
+CFLAGS+=-std=c11
 
 LDLIBS+=-lm
 
-.PHONY: clean debug profile default
+.PHONY: clean debug profile
 
 default: decode encode
 
-clean:$(RM) $(TARGET)
-debug: CFLAGS+=-g
-debug: $(TARGET)
+clean:
+	rm decode encode codec_functions.o
+debug:CFLAGS+=-g
+debug:$(TARGET)
+
 profile: CFLAGS+=-pg
 profile: LDFLAGS+=-pg
 profile: $(TARGET)
