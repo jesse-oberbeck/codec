@@ -11,46 +11,58 @@
 #include <ctype.h>
 #include "structures.h"
 
-int get_value(char *string)
+int
+get_value(
+    char *string)
 {
     int len = strlen(string);
-    for(int i = 0; i < len; ++i)
+
+    for (int i = 0; i < len; ++i)
     {
-        if((isalpha(string[i]) != 0) || string[i] == ':')
+        if ((isalpha(string[i]) != 0) || string[i] == ':')
         {
             string[i] = ' ';
         }
     }
     int value = strtol(string, NULL, 10);
-    return(value);
+
+    return (value);
 }
 
-double get_d_value(char *string)
+double
+get_d_value(
+    char *string)
 {
     int len = strlen(string);
-    for(int i = 0; i < len; ++i)
+
+    for (int i = 0; i < len; ++i)
     {
-        if((isalpha(string[i]) != 0) || string[i] == ':'|| string[i] == '/')
+        if ((isalpha(string[i]) != 0) || string[i] == ':' || string[i] == '/')
         {
             string[i] = ' ';
         }
     }
     double value = strtod(string, NULL);
-    return(value);
+
+    return (value);
 }
 
-float get_f_value(char *string)
+float
+get_f_value(
+    char *string)
 {
     int len = strlen(string);
-    for(int i = 0; i < len; ++i)
+
+    for (int i = 0; i < len; ++i)
     {
-        if((isalpha(string[i]) != 0) || string[i] == ':'|| string[i] == '/')
+        if ((isalpha(string[i]) != 0) || string[i] == ':' || string[i] == '/')
         {
             string[i] = ' ';
         }
     }
     float value = strtof(string, NULL);
-    return(value);
+
+    return (value);
 }
 
 int
@@ -70,8 +82,10 @@ process_file(
 
     int length_of_data = htonl(ph->DataLen) >> 24;
     int ip_len = htonl(ih->TotalLen) >> 16;
-    if(length_of_data <= 0){
-        return(-1);
+
+    if (length_of_data <= 0)
+    {
+        return (-1);
     }
 
     free(ph);
@@ -79,15 +93,18 @@ process_file(
     free(ih);
     free(uh);
 
-    return(length_of_data - ip_len - 14);
+    return (length_of_data - ip_len - 14);
 }
 
-void zerg1_decode(FILE *words, struct ZergHeader *zh)
+void
+zerg1_decode(
+    FILE * words,
+    struct ZergHeader *zh)
 {
     struct Status *st = calloc(sizeof(*st), 1);
 
     fread(st, sizeof(struct Status), 1, words);
-    int nameLen = (htonl(zh->TotalLen) >> 8);// - 24;
+    int nameLen = (htonl(zh->TotalLen) >> 8);   // - 24;
 
     char *message = calloc(nameLen + 1, 1);
 
@@ -96,8 +113,11 @@ void zerg1_decode(FILE *words, struct ZergHeader *zh)
     printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
     int unit_type_bin = htonl(st->Type) >> 24;
 
-    const char *type_array[] = {"Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone", "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk", "Mutalisk", "Defiler", "Devourer"};
-    
+    const char *type_array[] =
+        { "Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone",
+"Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk",
+"Mutalisk", "Defiler", "Devourer" };
+
     printf("Type: %s\n", type_array[unit_type_bin]);
     printf("Armor: %d\n", htonl(st->Armor) >> 8);
 
@@ -110,41 +130,52 @@ void zerg1_decode(FILE *words, struct ZergHeader *zh)
 
 }
 
-char * extract(char * line)
+char *
+extract(
+    char *line)
 {
     //Extract from line of file.
     int i = 0;
     char *name = line;
     char *split_name = strtok(name, ": /");
-    while(split_name != NULL)
+
+    while (split_name != NULL)
     {
-        if(i == 1){
-            return(split_name);
+        if (i == 1)
+        {
+            return (split_name);
         }
         ++i;
         split_name = strtok(NULL, ": ");
     }
-    return(name);
+    return (name);
 }
 
-void zerg1_encode(char **lines, FILE *packet)
+void
+zerg1_encode(
+    char **lines,
+    FILE * packet)
 {
     struct Status *st = calloc(sizeof(*st), 1);
     char *name = extract(lines[4]);
 
     char *total_hp = extract(lines[5]);
-    int remaining_hp  = get_value(total_hp);
+    int remaining_hp = get_value(total_hp);
     int max_hp = get_value(extract(total_hp));
 
     st->HP = htonl(remaining_hp) >> 8;
     st->MaxHP = htonl(max_hp) >> 8;
-    char * unit_type = extract(lines[6]);
+    char *unit_type = extract(lines[6]);
 
-    const char *type_array[] = {"Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone", "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk", "Mutalisk", "Defiler", "Devourer"};
+    const char *type_array[] =
+        { "Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone",
+"Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk",
+"Mutalisk", "Defiler", "Devourer" };
     int type = 0;
-    for(int i = 0; i < 16; ++i)
+
+    for (int i = 0; i < 16; ++i)
     {
-        if(strcmp(type_array[i], unit_type) == 0)
+        if (strcmp(type_array[i], unit_type) == 0)
         {
             type = i;
             break;
@@ -153,20 +184,24 @@ void zerg1_encode(char **lines, FILE *packet)
     st->Type = htonl(type) >> 24;
 
     int armor = get_value(lines[7]);
+
     st->Armor = htonl(armor) >> 8;
-    
+
     float speed = get_f_value(lines[8]);
     uint32_t pack_speed = htonl(rev_convert_32(speed));
+
     st->Speed = pack_speed;
-    
-    fwrite(st,12, 1, packet);
+
+    fwrite(st, 12, 1, packet);
     fwrite(name, strlen(name), 1, packet);
     free(st);
     return;
 
 }
 
-void zerg2_decode(FILE *words)
+void
+zerg2_decode(
+    FILE * words)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
 
@@ -180,15 +215,18 @@ void zerg2_decode(FILE *words)
         break;
     case (1):
         printf("GOTO\n");
-        unsigned int *distance = calloc(4,1);
+        unsigned int *distance = calloc(4, 1);
+
         fread(distance, 2, 1, words);
 
         printf("Distance: %d\n", *distance);
 
         uint32_t bearing_bin;
+
         fread(&bearing_bin, 4, 1, words);
         bearing_bin = ntohl(bearing_bin);
         float bearing = convert_32(bearing_bin);
+
         printf("Bearing: %f\n", bearing);
         free(distance);
 
@@ -204,9 +242,10 @@ void zerg2_decode(FILE *words)
         break;
     case (5):
         printf("SET_GROUP\n");
-        int *P1 = calloc(4,1);
+        int *P1 = calloc(4, 1);
+
         fread(P1, 2, 1, words);
-        if(*P1)
+        if (*P1)
         {
             printf("Add zerg to");
         }
@@ -214,7 +253,8 @@ void zerg2_decode(FILE *words)
         {
             printf("Remove zerg from");
         }
-        int *P2 = calloc(4,1);
+        int *P2 = calloc(4, 1);
+
         fread(P2, 4, 1, words);
         printf(": %d\n", *P2);
         free(P1);
@@ -232,56 +272,61 @@ void zerg2_decode(FILE *words)
     free(cm);
 }
 
-int zerg2_encode(char **lines)
+int
+zerg2_encode(
+    char **lines)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
     char *comm = lines[4];
     int command_num = 0;
 
-    if((strcmp(comm, "GET_STATUS") == 0) || (strcmp(comm, "GET_STATUS\n") == 0))
+    if ((strcmp(comm, "GET_STATUS") == 0) ||
+        (strcmp(comm, "GET_STATUS\n") == 0))
     {
     }
 
-    if((strcmp(comm, "GOTO") == 0) || (strcmp(comm, "GOTO\n") == 0))
+    if ((strcmp(comm, "GOTO") == 0) || (strcmp(comm, "GOTO\n") == 0))
     {
         command_num = 1;
     }
 
-    if((strcmp(comm, "GET_GPS") == 0) || (strcmp(comm, "GET_GPS\n") == 0))
+    if ((strcmp(comm, "GET_GPS") == 0) || (strcmp(comm, "GET_GPS\n") == 0))
     {
         command_num = 2;
     }
 
-     if((strcmp(comm, "RESERVED") == 0) || (strcmp(comm, "RESERVED\n") == 0))
+    if ((strcmp(comm, "RESERVED") == 0) || (strcmp(comm, "RESERVED\n") == 0))
     {
         command_num = 3;
     }
 
-    if((strcmp(comm, "RETURN") == 0) || (strcmp(comm, "RETURN\n") == 0))
+    if ((strcmp(comm, "RETURN") == 0) || (strcmp(comm, "RETURN\n") == 0))
     {
         command_num = 4;
     }
 
-    if((strcmp(comm, "SET_GROUP") == 0) || (strcmp(comm, "SET_GROUP\n") == 0))
+    if ((strcmp(comm, "SET_GROUP") == 0) || (strcmp(comm, "SET_GROUP\n") == 0))
     {
         command_num = 5;
     }
-    
-    if((strcmp(comm, "STOP") == 0) || (strcmp(comm, "STOP\n") == 0))
+
+    if ((strcmp(comm, "STOP") == 0) || (strcmp(comm, "STOP\n") == 0))
     {
         command_num = 6;
     }
-    
-    if((strcmp(comm, "REPEAT") == 0) || (strcmp(comm, "REPEAT\n") == 0))
+
+    if ((strcmp(comm, "REPEAT") == 0) || (strcmp(comm, "REPEAT\n") == 0))
     {
         command_num = 7;
     }
 
     free(cm);
-    return(command_num);
+    return (command_num);
 }
 
-void zerg3_decode(FILE *words)
+void
+zerg3_decode(
+    FILE * words)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
@@ -328,7 +373,10 @@ void zerg3_decode(FILE *words)
     free(gps);
 }
 
-void zerg3_encode(char **lines, FILE *packet)
+void
+zerg3_encode(
+    char **lines,
+    FILE * packet)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
