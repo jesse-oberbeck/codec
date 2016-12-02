@@ -125,216 +125,216 @@ main(int argc,char *argv[])
     fwrite(fh, sizeof(*fh), 1, packet);
     free(fh);
 
-for(int i = 0; i < packetcount; ++i){
-    linecount = 0;
-    char **lines = setup(&linecount, packets[i]);
-    int zerg_type = get_value(lines[0]);
-    //int sequence = get_value(lines[1]) + 1;
-    //int zerg_len = get_value(lines[2]);
-    int did = get_value(lines[2]);
-    int sid = get_value(lines[3]);
+    for(int i = 0; i < packetcount; ++i){
+        linecount = 0;
+        char **lines = setup(&linecount, packets[i]);
+        int zerg_type = get_value(lines[0]);
+        //int sequence = get_value(lines[1]) + 1;
+        //int zerg_len = get_value(lines[2]);
+        int did = get_value(lines[2]);
+        int sid = get_value(lines[3]);
 
 
-    struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
-    struct EthernetHeader *eh = calloc(sizeof(*eh), 1); //ethernet header
-    struct Ipv4Header *ih = calloc(sizeof(*ih), 1); //ip header
-    struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
-    struct ZergHeader *zh = calloc(sizeof(*zh), 1);
+        struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
+        struct EthernetHeader *eh = calloc(sizeof(*eh), 1); //ethernet header
+        struct Ipv4Header *ih = calloc(sizeof(*ih), 1); //ip header
+        struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
+        struct ZergHeader *zh = calloc(sizeof(*zh), 1);
 
-    (*eh).Etype = 2048;
+        (*eh).Etype = 2048;
 
-    (*ih).Version = '\x4';
-    (*ih).IHL = '\x5';
-    (*ih).Protocol = '\x11';
+        (*ih).Version = '\x4';
+        (*ih).IHL = '\x5';
+        (*ih).Protocol = '\x11';
 
-    (*uh).Dport = 42766;
-    //uh.Length
+        (*uh).Dport = 42766;
+        //uh.Length
 
-    (*zh).Version = '\x1';
-    (*zh).Type = zerg_type;
-    (*zh).Sid = htonl(sid)>>16;
-    (*zh).Did = htonl(did)>>16;
+        (*zh).Version = '\x1';
+        (*zh).Type = zerg_type;
+        (*zh).Sid = htonl(sid)>>16;
+        (*zh).Did = htonl(did)>>16;
 
-    (*ph).PackLen = 94;
+        (*ph).PackLen = 94;
 
-    if(!packet)
-    {
-        fprintf(stderr, "Failed to open file!");
-        free(ph);
-        free(eh);
-        free(ih);
-        free(uh);
-        free(zh);
-        return(1);
-    }
-
-
-
-    --linecount;
-    if (zerg_type == 0)
-    {
-        int zerglen = 12 + strlen(lines[4]);
-        int p_len = 42 + zerglen;
-        int total_len = htonl(p_len)>>24;
-        int ip_len = 28 + zerglen;
-        (*uh).Len = htonl(8 + zerglen);
-        (*ph).PackLen = total_len;
-        (*ph).DataLen = total_len;
-        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
-        (*zh).TotalLen = htonl(zerglen)>>8;
-        fwrite(ph, sizeof(*ph), 1, packet);
-        fwrite(eh, sizeof(*eh), 1, packet);
-        fwrite(ih, sizeof(*ih), 1, packet);
-        fwrite(uh, sizeof(*uh), 1, packet);
-        fwrite(zh, sizeof(*zh), 1, packet);
-        fwrite(lines[4], strlen(lines[4]), 1, packet);
-    }
-    else if (zerg_type == 1)
-    {
-        int zerglen = (strlen(lines[4]) - 6);
-        int p_len = 54 + zerglen;
-        int total_len = htonl(p_len)>>24;
-        int ip_len = 40 + zerglen;
-        (*uh).Len = htonl(8 + zerglen);
-        (*ph).PackLen = total_len;
-        (*ph).DataLen = total_len;
-        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
-        
-        (*zh).TotalLen = htonl(zerglen)>>8;
-        fwrite(ph, sizeof(*ph), 1, packet);
-        fwrite(eh, sizeof(*eh), 1, packet);
-        fwrite(ih, sizeof(*ih), 1, packet);
-        fwrite(uh, sizeof(*uh), 1, packet);
-        fwrite(zh, sizeof(*zh), 1, packet);
-        zerg1_encode(lines, packet);
-    }
-
-    else if (zerg_type == 2)
-    {
-        int command_num = zerg2_encode(lines);
-        int p_len = 0;
-        int total_len = 0;
-        int ip_len = 0;
-        int udpLength = 0;
-        if(command_num % 2 == 0)
+        if(!packet)
         {
-            p_len = 54 + 2;
-            udpLength = 20 + 2;
-            total_len = htonl(p_len)>>24;
-            ip_len = 40 + 2;
-        }
-        else
-        {
-            p_len = 54 + 8;
-            udpLength = 20 + 8;
-            total_len = htonl(p_len)>>24;
-            ip_len = 40 + 8;
+            fprintf(stderr, "Failed to open file!");
+            free(ph);
+            free(eh);
+            free(ih);
+            free(uh);
+            free(zh);
+            return(1);
         }
 
-        (*zh).TotalLen = htonl(udpLength - 8)>>8;
-        (*ph).PackLen = total_len;
-        (*ph).DataLen = total_len;
-        (*uh).Len = htonl(udpLength);
-        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
-        //struct Command *zp = calloc(sizeof(*zp), 1);
-        fwrite(ph, sizeof(*ph), 1, packet);
-        fwrite(eh, sizeof(*eh), 1, packet);
-        fwrite(ih, sizeof(*ih), 1, packet);
-        fwrite(uh, sizeof(*uh), 1, packet);
-        fwrite(zh, sizeof(*zh), 1, packet);
 
-        if(command_num % 2 != 0)
+
+        --linecount;
+        if (zerg_type == 0)
         {
+            int zerglen = 12 + strlen(lines[4]);
+            int p_len = 42 + zerglen;
+            int total_len = htonl(p_len)>>24;
+            int ip_len = 28 + zerglen;
+            (*uh).Len = htonl(8 + zerglen);
+            (*ph).PackLen = total_len;
+            (*ph).DataLen = total_len;
+            (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
+            (*zh).TotalLen = htonl(zerglen)>>8;
+            fwrite(ph, sizeof(*ph), 1, packet);
+            fwrite(eh, sizeof(*eh), 1, packet);
+            fwrite(ih, sizeof(*ih), 1, packet);
+            fwrite(uh, sizeof(*uh), 1, packet);
+            fwrite(zh, sizeof(*zh), 1, packet);
+            fwrite(lines[4], strlen(lines[4]), 1, packet);
+        }
+        else if (zerg_type == 1)
+        {
+            int zerglen = (strlen(lines[4]) - 6);
+            int p_len = 54 + zerglen;
+            int total_len = htonl(p_len)>>24;
+            int ip_len = 40 + zerglen;
+            (*uh).Len = htonl(8 + zerglen);
+            (*ph).PackLen = total_len;
+            (*ph).DataLen = total_len;
+            (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
+            
+            (*zh).TotalLen = htonl(zerglen)>>8;
+            fwrite(ph, sizeof(*ph), 1, packet);
+            fwrite(eh, sizeof(*eh), 1, packet);
+            fwrite(ih, sizeof(*ih), 1, packet);
+            fwrite(uh, sizeof(*uh), 1, packet);
+            fwrite(zh, sizeof(*zh), 1, packet);
+            zerg1_encode(lines, packet);
+        }
 
-            if(!lines[5])
+        else if (zerg_type == 2)
+        {
+            int command_num = zerg2_encode(lines);
+            int p_len = 0;
+            int total_len = 0;
+            int ip_len = 0;
+            int udpLength = 0;
+            if(command_num % 2 == 0)
             {
-                fprintf(stderr, "Incomplete information for status packet.\n");
-                return(1);
+                p_len = 54 + 2;
+                udpLength = 20 + 2;
+                total_len = htonl(p_len)>>24;
+                ip_len = 40 + 2;
             }
-            command_num = htonl(command_num) >> 16;
-            fwrite(&command_num , 2, 1, packet);
-            if(strstr(lines[5], "Add") != NULL)
+            else
             {
-                int addFlag = htonl(42);
-                fwrite(&addFlag, 2, 1, packet);
-                int groupId = get_value(lines[5]);
-                fwrite(&groupId, 4, 1, packet);
-            }
-            else if(strstr(lines[5], "Remove") != NULL)
-            {
-                int removeFlag = 0;
-                fwrite(&removeFlag, 2, 1, packet);
-                int groupId = get_value(lines[5]);
-                fwrite(&groupId, 4, 1, packet);
+                p_len = 54 + 8;
+                udpLength = 20 + 8;
+                total_len = htonl(p_len)>>24;
+                ip_len = 40 + 8;
             }
 
-            else if(strstr(lines[5], "Distance") != NULL)
+            (*zh).TotalLen = htonl(udpLength - 8)>>8;
+            (*ph).PackLen = total_len;
+            (*ph).DataLen = total_len;
+            (*uh).Len = htonl(udpLength);
+            (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
+            //struct Command *zp = calloc(sizeof(*zp), 1);
+            fwrite(ph, sizeof(*ph), 1, packet);
+            fwrite(eh, sizeof(*eh), 1, packet);
+            fwrite(ih, sizeof(*ih), 1, packet);
+            fwrite(uh, sizeof(*uh), 1, packet);
+            fwrite(zh, sizeof(*zh), 1, packet);
+
+            if(command_num % 2 != 0)
             {
-                if(!lines[6])
+
+                if(!lines[5])
                 {
-                    fprintf(stderr, "Incomplete information for GOTO packet.\n");
+                    fprintf(stderr, "Incomplete information for status packet.\n");
                     return(1);
                 }
-                unsigned int distance = get_value(lines[5]);
-                fwrite(&distance, 2, 1, packet);
-                float bearing = get_f_value(lines[6]);
-                uint32_t bear_bin = htonl(rev_convert_32(bearing));
-                fwrite(&bear_bin, 4, 1, packet);
-            }
+                command_num = htonl(command_num) >> 16;
+                fwrite(&command_num , 2, 1, packet);
+                if(strstr(lines[5], "Add") != NULL)
+                {
+                    int addFlag = htonl(42);
+                    fwrite(&addFlag, 2, 1, packet);
+                    int groupId = get_value(lines[5]);
+                    fwrite(&groupId, 4, 1, packet);
+                }
+                else if(strstr(lines[5], "Remove") != NULL)
+                {
+                    int removeFlag = 0;
+                    fwrite(&removeFlag, 2, 1, packet);
+                    int groupId = get_value(lines[5]);
+                    fwrite(&groupId, 4, 1, packet);
+                }
 
+                else if(strstr(lines[5], "Distance") != NULL)
+                {
+                    if(!lines[6])
+                    {
+                        fprintf(stderr, "Incomplete information for GOTO packet.\n");
+                        return(1);
+                    }
+                    unsigned int distance = get_value(lines[5]);
+                    fwrite(&distance, 2, 1, packet);
+                    float bearing = get_f_value(lines[6]);
+                    uint32_t bear_bin = htonl(rev_convert_32(bearing));
+                    fwrite(&bear_bin, 4, 1, packet);
+                }
+
+            }
+            else
+            {
+                command_num = htonl(command_num) >> 16;
+                fwrite(&command_num , 2, 1, packet);
+            }
         }
+
+        else if (zerg_type == 3)
+        {
+            int p_len = 54 + sizeof(struct GPS);
+            int total_len = htonl(p_len)>>24;
+            int ip_len = 40 + sizeof(struct GPS);
+            (*uh).Len = 8 + sizeof(struct GPS);
+            (*zh).TotalLen = htonl(sizeof(struct GPS))>>8;
+            (*ph).PackLen = total_len;
+            (*ph).DataLen = total_len;
+            (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
+            //struct GPS *zp = calloc(sizeof(*zp), 1);
+            fwrite(ph, sizeof(*ph), 1, packet);
+            fwrite(eh, sizeof(*eh), 1, packet);
+            fwrite(ih, sizeof(*ih), 1, packet);
+            fwrite(uh, sizeof(*uh), 1, packet);
+            fwrite(zh, sizeof(*zh), 1, packet);
+            zerg3_encode(lines, packet);
+        }
+        
         else
         {
-            command_num = htonl(command_num) >> 16;
-            fwrite(&command_num , 2, 1, packet);
+            fprintf(stderr, "Invalid packet instructions. Closing.");
+            free(fh);
+            free(ph);
+            free(eh);
+            free(ih);
+            free(uh);
+            free(zh);
+            fclose(packet);
+            array_free(lines, linecount);
+            free(packets);
+            return(1);
         }
-    }
 
-    else if (zerg_type == 3)
-    {
-        int p_len = 54 + sizeof(struct GPS);
-        int total_len = htonl(p_len)>>24;
-        int ip_len = 40 + sizeof(struct GPS);
-        (*uh).Len = 8 + sizeof(struct GPS);
-        (*zh).TotalLen = htonl(sizeof(struct GPS))>>8;
-        (*ph).PackLen = total_len;
-        (*ph).DataLen = total_len;
-        (*ih).TotalLen = htonl(ip_len)>>16;//Length of packet. 48 + payload
-        //struct GPS *zp = calloc(sizeof(*zp), 1);
-        fwrite(ph, sizeof(*ph), 1, packet);
-        fwrite(eh, sizeof(*eh), 1, packet);
-        fwrite(ih, sizeof(*ih), 1, packet);
-        fwrite(uh, sizeof(*uh), 1, packet);
-        fwrite(zh, sizeof(*zh), 1, packet);
-        zerg3_encode(lines, packet);
-    }
-    
-    else
-    {
-        fprintf(stderr, "Invalid packet instructions. Closing.");
-        free(fh);
+
+
         free(ph);
         free(eh);
         free(ih);
         free(uh);
         free(zh);
-        fclose(packet);
+
         array_free(lines, linecount);
-        free(packets);
-        return(1);
+
     }
-
-
-
-    free(ph);
-    free(eh);
-    free(ih);
-    free(uh);
-    free(zh);
-
-    array_free(lines, linecount);
-
-}
     free(packets);
     fclose(packet);
     return(0);
