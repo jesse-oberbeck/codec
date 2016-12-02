@@ -31,7 +31,7 @@ get_value(
 
 double
 get_d_value(
-    char *string)
+    char *string) 
 {
     int len = strlen(string);
 
