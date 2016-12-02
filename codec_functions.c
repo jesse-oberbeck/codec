@@ -80,8 +80,8 @@ processFile(
     fread(ih, sizeof(struct Ipv4Header), 1, words);
     fread(uh, sizeof(struct UdpHeader), 1, words);
 
-    int length_of_data = htonl(ph->DataLen) >> 24;
-    int ip_len = htonl(ih->TotalLen) >> 16;
+    int length_of_data = ntohl(ph->DataLen) >> 24;
+    int ip_len = ntohl(ih->TotalLen) >> 16;
 
     if (length_of_data <= 0)
     {
@@ -104,25 +104,25 @@ zerg1Decode(
     struct Status *st = calloc(sizeof(*st), 1);
 
     fread(st, sizeof(struct Status), 1, words);
-    int nameLen = (htonl(zh->TotalLen) >> 8);   // - 24;
+    int nameLen = (ntohl(zh->TotalLen) >> 8) - sizeof(struct ZergHeader);   // - 24;
 
     char *message = calloc(nameLen + 1, 1);
 
     fread(message, nameLen, 1, words);
     printf("Name: %s\n", message);
-    printf("HP: %d/%d\n", htonl(st->HP) >> 8, htonl(st->MaxHP) >> 8);
-    int unit_type_bin = htonl(st->Type) >> 24;
+    printf("HP: %d/%d\n", ntohl(st->HP) >> 8, ntohl(st->MaxHP) >> 8);
+    int unitTypeBin = ntohl(st->Type) >> 24;
 
-    const char *type_array[] =
+    const char *typeArray[] =
         { "Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone",
 "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk",
 "Mutalisk", "Defiler", "Devourer" };
 
-    printf("Type: %s\n", type_array[unit_type_bin]);
-    printf("Armor: %d\n", htonl(st->Armor) >> 8);
+    printf("Type: %s\n", typeArray[unitTypeBin]);
+    printf("Armor: %d\n", ntohl(st->Armor) >> 24);
 
-    int bin_speed = htonl(st->Speed);
-    double speed = convert32(bin_speed);
+    int binSpeed = ntohl(st->Speed);
+    double speed = convert32(binSpeed);
 
     printf("Max Speed: %fm/s\n", speed);
     free(st);
@@ -137,16 +137,16 @@ extract(
     //Extract from line of file.
     int i = 0;
     char *name = line;
-    char *split_name = strtok(name, ": /");
+    char *splitName = strtok(name, ": /");
 
-    while (split_name != NULL)
+    while (splitName != NULL)
     {
         if (i == 1)
         {
-            return (split_name);
+            return (splitName);
         }
         ++i;
-        split_name = strtok(NULL, ": ");
+        splitName = strtok(NULL, ": ");
     }
     return (name);
 }
@@ -159,15 +159,15 @@ zerg1Encode(
     struct Status *st = calloc(sizeof(*st), 1);
     char *name = extract(lines[4]);
 
-    char *total_hp = extract(lines[5]);
-    int remaining_hp = getValue(total_hp);
-    int max_hp = getValue(extract(total_hp));
+    char *totalHp = extract(lines[5]);
+    int remaining_hp = getValue(totalHp);
+    int maxHp = getValue(extract(totalHp));
 
     st->HP = htonl(remaining_hp) >> 8;
-    st->MaxHP = htonl(max_hp) >> 8;
-    char *unit_type = extract(lines[6]);
+    st->MaxHP = htonl(maxHp) >> 8;
+    char *unitType = extract(lines[6]);
 
-    const char *type_array[] =
+    const char *typeArray[] =
         { "Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone",
 "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk",
 "Mutalisk", "Defiler", "Devourer" };
@@ -175,7 +175,7 @@ zerg1Encode(
 
     for (int i = 0; i < 16; ++i)
     {
-        if (strcmp(type_array[i], unit_type) == 0)
+        if (strcmp(typeArray[i], unitType) == 0)
         {
             type = i;
             break;
@@ -185,12 +185,12 @@ zerg1Encode(
 
     int armor = getValue(lines[7]);
 
-    st->Armor = htonl(armor) >> 8;
+    st->Armor = htonl(armor) >> 24;
 
     float speed = getFValue(lines[8]);
-    uint32_t pack_speed = htonl(reverseConvert32(speed));
+    uint32_t packSpeed = htonl(reverseConvert32(speed));
 
-    st->Speed = pack_speed;
+    st->Speed = packSpeed;
 
     fwrite(st, 12, 1, packet);
     fwrite(name, strlen(name), 1, packet);
@@ -206,7 +206,7 @@ zerg2Decode(
     struct Command *cm = calloc(sizeof(*cm), 1);
 
     fread(cm, sizeof(struct Command), 1, words);
-    long command = htonl(cm->Command) >> 16;
+    long command = ntohl(cm->Command) >> 16;
 
     switch (command)
     {
@@ -221,11 +221,11 @@ zerg2Decode(
 
         printf("Distance: %d\n", *distance);
 
-        uint32_t bearing_bin;
+        uint32_t bearingBin;
 
-        fread(&bearing_bin, 4, 1, words);
-        bearing_bin = ntohl(bearing_bin);
-        float bearing = convert32(bearing_bin);
+        fread(&bearingBin, 4, 1, words);
+        bearingBin = ntohl(bearingBin);
+        float bearing = convert32(bearingBin);
 
         printf("Bearing: %f\n", bearing);
         free(distance);
@@ -265,6 +265,13 @@ zerg2Decode(
         break;
     case (7):
         printf("REPEAT\n");
+        unsigned int *filler = calloc(4, 1);
+        fread(filler, 2, 1, words);
+        unsigned int *sequence = calloc(4, 1);
+        fread(sequence, 4, 1, words);
+        free(filler);
+        printf("Sequence: %d\n", *sequence);
+        free(sequence);
         break;
     }
 
@@ -278,7 +285,7 @@ zerg2Encode(
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
     char *comm = lines[4];
-    int command_num = 0;
+    int commandNum = 0;
 
     if ((strcmp(comm, "GET_STATUS") == 0) ||
         (strcmp(comm, "GET_STATUS\n") == 0))
@@ -287,41 +294,41 @@ zerg2Encode(
 
     if ((strcmp(comm, "GOTO") == 0) || (strcmp(comm, "GOTO\n") == 0))
     {
-        command_num = 1;
+        commandNum = 1;
     }
 
     if ((strcmp(comm, "GET_GPS") == 0) || (strcmp(comm, "GET_GPS\n") == 0))
     {
-        command_num = 2;
+        commandNum = 2;
     }
 
     if ((strcmp(comm, "RESERVED") == 0) || (strcmp(comm, "RESERVED\n") == 0))
     {
-        command_num = 3;
+        commandNum = 3;
     }
 
     if ((strcmp(comm, "RETURN") == 0) || (strcmp(comm, "RETURN\n") == 0))
     {
-        command_num = 4;
+        commandNum = 4;
     }
 
     if ((strcmp(comm, "SET_GROUP") == 0) || (strcmp(comm, "SET_GROUP\n") == 0))
     {
-        command_num = 5;
+        commandNum = 5;
     }
 
     if ((strcmp(comm, "STOP") == 0) || (strcmp(comm, "STOP\n") == 0))
     {
-        command_num = 6;
+        commandNum = 6;
     }
 
     if ((strcmp(comm, "REPEAT") == 0) || (strcmp(comm, "REPEAT\n") == 0))
     {
-        command_num = 7;
+        commandNum = 7;
     }
 
     free(cm);
-    return (command_num);
+    return (commandNum);
 }
 
 void
@@ -354,17 +361,17 @@ zerg3Decode(
         printf("longitude: %.9f deg. W\n", fabs(longitude));
     }
 
-    uint32_t altitude_bin = htonl(gps->Altit);
-    float altitude = convert32(altitude_bin);
+    uint32_t altitudeBin = ntohl(gps->Altit);
+    float altitude = convert32(altitudeBin);
 
-    uint32_t bearing_bin = htonl(gps->Bearing);
-    float bearing = convert32(bearing_bin);
+    uint32_t bearingBin = ntohl(gps->Bearing);
+    float bearing = convert32(bearingBin);
 
-    uint32_t speed_bin = htonl(gps->Speed);
-    float speed = convert32(speed_bin);
+    uint32_t speedBin = ntohl(gps->Speed);
+    float speed = convert32(speedBin);
 
-    uint32_t acc_bin = htonl(gps->Acc);
-    float accuracy = convert32(acc_bin);
+    uint32_t accuracyBin = ntohl(gps->Acc);
+    float accuracy = convert32(accuracyBin);
 
     printf("Altitude: %.1fm\n", altitude * 1.8288); //Multiplying by 1.8288 to convert fathoms to meters.
     printf("Bearing: %f deg\n", bearing);
@@ -398,19 +405,19 @@ zerg3Encode(
     float speed = getFValue(lines[8]) * .277778;
     float acc = getFValue(lines[9]);
 
-    uint64_t lat_bin = be64toh(reverseConvert64(lat));
-    uint64_t lon_bin = be64toh(reverseConvert64(lon));
-    uint32_t alt_bin = htonl(reverseConvert32(alt));
-    uint32_t bear_bin = htonl(reverseConvert32(bear));
-    uint32_t speed_bin = htonl(reverseConvert32(speed));
-    uint32_t acc_bin = htonl(reverseConvert32(acc));
+    uint64_t latBin = be64toh(reverseConvert64(lat));
+    uint64_t lonBin = be64toh(reverseConvert64(lon));
+    uint32_t altBin = htonl(reverseConvert32(alt));
+    uint32_t bearBin = htonl(reverseConvert32(bear));
+    uint32_t speedBin = htonl(reverseConvert32(speed));
+    uint32_t accBin = htonl(reverseConvert32(acc));
 
-    gps->Longit = lon_bin;
-    gps->Latit = lat_bin;
-    gps->Altit = alt_bin;
-    gps->Bearing = bear_bin;
-    gps->Speed = speed_bin;
-    gps->Acc = acc_bin;
+    gps->Longit = lonBin;
+    gps->Latit = latBin;
+    gps->Altit = altBin;
+    gps->Bearing = bearBin;
+    gps->Speed = speedBin;
+    gps->Acc = accBin;
 
     fwrite(gps, 32, 1, packet);
     free(gps);
@@ -424,17 +431,17 @@ processZergHeader(
     struct Container *c)
 {
     fread(zh, sizeof(struct ZergHeader), 1, words);
-    int zerg_type = htonl(zh->Type) >> 24;
-    int total_len = htonl(zh->TotalLen) >> 8;
+    int zergType = ntohl(zh->Type) >> 24;
+    int totalLen = ntohl(zh->TotalLen) >> 8;
 
-    //printf("Zerg Version: %x\n", htonl(zh->Version) >> 24);
-    printf("Message Type: %d\n", zerg_type);
-    printf("Sequence: %d\n", htonl(zh->Sequence));
-    //printf("Zerg Packet Length: %d\n", total_len);
-    printf("Destination ID: %d\n", htonl(zh->Did) >> 16);
-    printf("Source ID: %d\n", htonl(zh->Sid) >> 16);
-    c->zerg_type = zerg_type;
-    c->total_len = total_len;
+    //printf("Zerg Version: %x\n", ntohl(zh->Version) >> 24);
+    printf("Message Type: %d\n", zergType);
+    printf("Sequence: %d\n", ntohl(zh->Sequence));
+    //printf("Zerg Packet Length: %d\n", totalLen);
+    printf("Destination ID: %d\n", ntohl(zh->Did) >> 16);
+    printf("Source ID: %d\n", ntohl(zh->Sid) >> 16);
+    c->zergType = zergType;
+    c->totalLen = totalLen;
     return;
 }
 

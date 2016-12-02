@@ -180,7 +180,7 @@ main(
 
         (*ih).Version = '\x4';
         (*ih).IHL = '\x5';
-        (*ih).Protocol = '\x11';
+        (*ih).Protocol = 17;
 
         (*uh).Dport = 42766;
         //uh.Length
@@ -236,8 +236,8 @@ main(
             (*ph).PackLen = total_len;
             (*ph).DataLen = total_len;
             (*ih).TotalLen = htonl(ip_len) >> 16;   //Length of packet. 48 + payload
-
-            (*zh).TotalLen = htonl(zerglen) >> 8;
+            int zergHeaderLenth = zerglen + 12;
+            (*zh).TotalLen = htonl(zergHeaderLenth) >> 8;
             fwrite(ph, sizeof(*ph), 1, packet);
             fwrite(eh, sizeof(*eh), 1, packet);
             fwrite(ih, sizeof(*ih), 1, packet);
@@ -330,6 +330,14 @@ main(
                     fwrite(&bear_bin, 4, 1, packet);
                 }
 
+                else if (strstr(lines[5], "Sequence") != NULL)
+                {
+                    unsigned int sequence = getValue(lines[5]);
+                    fwrite(&sequence, 2, 1, packet);
+                    fwrite(&sequence, 4, 1, packet);
+
+                }
+
             }
 
             else
@@ -346,7 +354,7 @@ main(
             int ip_len = 40 + sizeof(struct GPS);
 
             (*uh).Len = 8 + sizeof(struct GPS);
-            (*zh).TotalLen = htonl(sizeof(struct GPS)) >> 8;
+            (*zh).TotalLen = htonl(sizeof(struct GPS) + sizeof(struct ZergHeader)) >> 8;
             (*ph).PackLen = total_len;
             (*ph).DataLen = total_len;
             (*ih).TotalLen = htonl(ip_len) >> 16;   //Length of packet. 48 + payload

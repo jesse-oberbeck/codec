@@ -2,8 +2,8 @@
 from a function*/
 struct Container
 {
-    int zerg_type;
-    int total_len;
+    int zergType;
+    int totalLen;
 };
 
 /*Structure for handling the File Header*/

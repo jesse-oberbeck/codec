@@ -59,30 +59,30 @@ main(
         }
 
         processZergHeader(words, zh, c);
-        int zerg_type = c->zerg_type;
-        int total_len = (htonl(zh->TotalLen) >> 8) - 12;
+        int zergType = c->zergType;
+        int totalLen = (ntohl(zh->TotalLen) >> 8) - 12;
 
         //printf("Zerg Len: %d\n", total_len);
-        if (zerg_type == 0)
+        if (zergType == 0)
         {
-            char *message = calloc(total_len + 1, 1);
+            char *message = calloc(totalLen + 1, 1);
 
-            fread(message, total_len, 1, words);
+            fread(message, totalLen, 1, words);
             printf("%s\n", message);
             free(message);
         }
 
-        if (zerg_type == 1)
+        if (zergType == 1)
         {
             zerg1Decode(words, zh);
         }
 
-        if (zerg_type == 2)
+        if (zergType == 2)
         {
             zerg2Decode(words);
         }
 
-        if (zerg_type == 3)
+        if (zergType == 3)
         {
             zerg3Decode(words);
         }
