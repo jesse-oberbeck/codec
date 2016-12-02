@@ -12,7 +12,7 @@
 #include "structures.h"
 
 int
-get_value(
+getValue(
     char *string)
 {
     int len = strlen(string);
@@ -30,7 +30,7 @@ get_value(
 }
 
 double
-get_d_value(
+getDValue(
     char *string)
 {
     int len = strlen(string);
@@ -48,7 +48,7 @@ get_d_value(
 }
 
 float
-get_f_value(
+getFValue(
     char *string)
 {
     int len = strlen(string);
@@ -66,7 +66,7 @@ get_f_value(
 }
 
 int
-process_file(
+processFile(
     FILE * words)
 {
 
@@ -97,7 +97,7 @@ process_file(
 }
 
 void
-zerg1_decode(
+zerg1Decode(
     FILE * words,
     struct ZergHeader *zh)
 {
@@ -122,7 +122,7 @@ zerg1_decode(
     printf("Armor: %d\n", htonl(st->Armor) >> 8);
 
     int bin_speed = htonl(st->Speed);
-    double speed = convert_32(bin_speed);
+    double speed = convert32(bin_speed);
 
     printf("Max Speed: %fm/s\n", speed);
     free(st);
@@ -152,7 +152,7 @@ extract(
 }
 
 void
-zerg1_encode(
+zerg1Encode(
     char **lines,
     FILE * packet)
 {
@@ -160,8 +160,8 @@ zerg1_encode(
     char *name = extract(lines[4]);
 
     char *total_hp = extract(lines[5]);
-    int remaining_hp = get_value(total_hp);
-    int max_hp = get_value(extract(total_hp));
+    int remaining_hp = getValue(total_hp);
+    int max_hp = getValue(extract(total_hp));
 
     st->HP = htonl(remaining_hp) >> 8;
     st->MaxHP = htonl(max_hp) >> 8;
@@ -183,12 +183,12 @@ zerg1_encode(
     }
     st->Type = htonl(type) >> 24;
 
-    int armor = get_value(lines[7]);
+    int armor = getValue(lines[7]);
 
     st->Armor = htonl(armor) >> 8;
 
-    float speed = get_f_value(lines[8]);
-    uint32_t pack_speed = htonl(rev_convert_32(speed));
+    float speed = getFValue(lines[8]);
+    uint32_t pack_speed = htonl(reverseConvert32(speed));
 
     st->Speed = pack_speed;
 
@@ -200,7 +200,7 @@ zerg1_encode(
 }
 
 void
-zerg2_decode(
+zerg2Decode(
     FILE * words)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
@@ -225,7 +225,7 @@ zerg2_decode(
 
         fread(&bearing_bin, 4, 1, words);
         bearing_bin = ntohl(bearing_bin);
-        float bearing = convert_32(bearing_bin);
+        float bearing = convert32(bearing_bin);
 
         printf("Bearing: %f\n", bearing);
         free(distance);
@@ -273,7 +273,7 @@ zerg2_decode(
 }
 
 int
-zerg2_encode(
+zerg2Encode(
     char **lines)
 {
     struct Command *cm = calloc(sizeof(*cm), 1);
@@ -325,7 +325,7 @@ zerg2_encode(
 }
 
 void
-zerg3_decode(
+zerg3Decode(
     FILE * words)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
@@ -333,8 +333,8 @@ zerg3_decode(
     fread(gps, sizeof(struct GPS), 1, words);
 
 
-    double latitude = convert_64(be64toh(gps->Latit));
-    double longitude = convert_64(be64toh(gps->Longit));
+    double latitude = convert64(be64toh(gps->Latit));
+    double longitude = convert64(be64toh(gps->Longit));
 
     if (latitude > 0)
     {
@@ -355,16 +355,16 @@ zerg3_decode(
     }
 
     uint32_t altitude_bin = htonl(gps->Altit);
-    float altitude = convert_32(altitude_bin);
+    float altitude = convert32(altitude_bin);
 
     uint32_t bearing_bin = htonl(gps->Bearing);
-    float bearing = convert_32(bearing_bin);
+    float bearing = convert32(bearing_bin);
 
     uint32_t speed_bin = htonl(gps->Speed);
-    float speed = convert_32(speed_bin);
+    float speed = convert32(speed_bin);
 
     uint32_t acc_bin = htonl(gps->Acc);
-    float accuracy = convert_32(acc_bin);
+    float accuracy = convert32(acc_bin);
 
     printf("Altitude: %.1fm\n", altitude * 1.8288); //Multiplying by 1.8288 to convert fathoms to meters.
     printf("Bearing: %f deg\n", bearing);
@@ -374,14 +374,14 @@ zerg3_decode(
 }
 
 void
-zerg3_encode(
+zerg3Encode(
     char **lines,
     FILE * packet)
 {
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
-    double lat = get_d_value(lines[4]);
-    double lon = get_d_value(lines[5]);
+    double lat = getDValue(lines[4]);
+    double lon = getDValue(lines[5]);
 
     if (strstr(lines[4], "S") != NULL)
     {
@@ -393,17 +393,17 @@ zerg3_encode(
         lon = lon * -1;
     }
 
-    float alt = get_f_value(lines[6]) * .546807;
-    float bear = get_f_value(lines[7]);
-    float speed = get_f_value(lines[8]) * .277778;
-    float acc = get_f_value(lines[9]);
+    float alt = getFValue(lines[6]) * .546807;
+    float bear = getFValue(lines[7]);
+    float speed = getFValue(lines[8]) * .277778;
+    float acc = getFValue(lines[9]);
 
-    uint64_t lat_bin = be64toh(rev_convert_64(lat));
-    uint64_t lon_bin = be64toh(rev_convert_64(lon));
-    uint32_t alt_bin = htonl(rev_convert_32(alt));
-    uint32_t bear_bin = htonl(rev_convert_32(bear));
-    uint32_t speed_bin = htonl(rev_convert_32(speed));
-    uint32_t acc_bin = htonl(rev_convert_32(acc));
+    uint64_t lat_bin = be64toh(reverseConvert64(lat));
+    uint64_t lon_bin = be64toh(reverseConvert64(lon));
+    uint32_t alt_bin = htonl(reverseConvert32(alt));
+    uint32_t bear_bin = htonl(reverseConvert32(bear));
+    uint32_t speed_bin = htonl(reverseConvert32(speed));
+    uint32_t acc_bin = htonl(reverseConvert32(acc));
 
     gps->Longit = lon_bin;
     gps->Latit = lat_bin;
@@ -418,7 +418,7 @@ zerg3_encode(
 }
 
 void
-process_zerg_header(
+processZergHeader(
     FILE * words,
     struct ZergHeader *zh,
     struct Container *c)
@@ -440,7 +440,7 @@ process_zerg_header(
 
 /*Get end of file */
 int
-file_size(
+fileSize(
     FILE * words)
 {
 
@@ -452,7 +452,7 @@ file_size(
 }
 
 float
-convert_32(
+convert32(
     uint32_t num)
 {
     union
@@ -468,7 +468,7 @@ convert_32(
 }
 
 uint32_t
-rev_convert_32(
+reverseConvert32(
     float num)
 {
     union
@@ -484,7 +484,7 @@ rev_convert_32(
 }
 
 double
-convert_64(
+convert64(
     uint64_t num)
 {
     union
@@ -502,7 +502,7 @@ convert_64(
 }
 
 uint64_t
-rev_convert_64(
+reverseConvert64(
     double num)
 {
     union

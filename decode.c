@@ -32,7 +32,7 @@ main(
     char *file = argv[1];
     FILE *words = fopen(file, "rb");
     int result = 0;
-    int end_pos = file_size(words);
+    int end_pos = fileSize(words);
 
     //Reads in file header once.
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
@@ -49,7 +49,7 @@ main(
     //Loop to handle individual packets begins here.
     while (current_pos != end_pos)
     {
-        result = process_file(words);
+        result = processFile(words);
         if (result < 0)
         {
             free(zh);
@@ -58,7 +58,7 @@ main(
             return (0);
         }
 
-        process_zerg_header(words, zh, c);
+        processZergHeader(words, zh, c);
         int zerg_type = c->zerg_type;
         int total_len = (htonl(zh->TotalLen) >> 8) - 12;
 
@@ -74,17 +74,17 @@ main(
 
         if (zerg_type == 1)
         {
-            zerg1_decode(words, zh);
+            zerg1Decode(words, zh);
         }
 
         if (zerg_type == 2)
         {
-            zerg2_decode(words);
+            zerg2Decode(words);
         }
 
         if (zerg_type == 3)
         {
-            zerg3_decode(words);
+            zerg3Decode(words);
         }
 
         if (result > 0)

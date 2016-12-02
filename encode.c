@@ -61,7 +61,7 @@ initialize(
     const char *filename)
 {
     FILE *words = fopen(filename, "r");
-    int filesize = file_size(words);
+    int filesize = fileSize(words);
     char *contents = read_file(filesize, words);
     char *contents2 = calloc(filesize + 1, 1);
 
@@ -135,9 +135,9 @@ main(
     char *argv[])
 {
     //Check for file name provided as arg.
-    if (argc < 2)
+    if (argc < 3)
     {
-        fprintf(stderr, "Please provide a file name.\n");
+        fprintf(stderr, "Please provide source and destination file names.\n");
         return (1);
     }
     else if (access(argv[1], F_OK) == -1)
@@ -162,12 +162,12 @@ main(
     {
         linecount = 0;
         char **lines = setup(&linecount, packets[i]);
-        int zerg_type = get_value(lines[0]);
+        int zerg_type = getValue(lines[0]);
 
-        //int sequence = get_value(lines[1]) + 1;
-        //int zerg_len = get_value(lines[2]);
-        int did = get_value(lines[2]);
-        int sid = get_value(lines[3]);
+        //int sequence = getValue(lines[1]) + 1;
+        //int zerg_len = getValue(lines[2]);
+        int did = getValue(lines[2]);
+        int sid = getValue(lines[3]);
 
 
         struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
@@ -243,12 +243,12 @@ main(
             fwrite(ih, sizeof(*ih), 1, packet);
             fwrite(uh, sizeof(*uh), 1, packet);
             fwrite(zh, sizeof(*zh), 1, packet);
-            zerg1_encode(lines, packet);
+            zerg1Encode(lines, packet);
         }
 
         else if (zerg_type == 2)
         {
-            int command_num = zerg2_encode(lines);
+            int command_num = zerg2Encode(lines);
             int p_len = 0;
             int total_len = 0;
             int ip_len = 0;
@@ -299,7 +299,7 @@ main(
                     int addFlag = htonl(42);
 
                     fwrite(&addFlag, 2, 1, packet);
-                    int groupId = get_value(lines[5]);
+                    int groupId = getValue(lines[5]);
 
                     fwrite(&groupId, 4, 1, packet);
                 }
@@ -308,7 +308,7 @@ main(
                     int removeFlag = 0;
 
                     fwrite(&removeFlag, 2, 1, packet);
-                    int groupId = get_value(lines[5]);
+                    int groupId = getValue(lines[5]);
 
                     fwrite(&groupId, 4, 1, packet);
                 }
@@ -321,11 +321,11 @@ main(
                                 "Incomplete information for GOTO packet.\n");
                         return (1);
                     }
-                    unsigned int distance = get_value(lines[5]);
+                    unsigned int distance = getValue(lines[5]);
 
                     fwrite(&distance, 2, 1, packet);
-                    float bearing = get_f_value(lines[6]);
-                    uint32_t bear_bin = htonl(rev_convert_32(bearing));
+                    float bearing = getFValue(lines[6]);
+                    uint32_t bear_bin = htonl(reverseConvert32(bearing));
 
                     fwrite(&bear_bin, 4, 1, packet);
                 }
@@ -356,7 +356,7 @@ main(
             fwrite(ih, sizeof(*ih), 1, packet);
             fwrite(uh, sizeof(*uh), 1, packet);
             fwrite(zh, sizeof(*zh), 1, packet);
-            zerg3_encode(lines, packet);
+            zerg3Encode(lines, packet);
         }
 
         else
