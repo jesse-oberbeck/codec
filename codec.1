@@ -21,9 +21,10 @@ Encoder takes descriptions of Psionic Capture packets, which are to be formatted
 
 An example of the format for encoding is provided in the EXAMPLE section.
 
-.SH EXAMPLE
-.B Message Packet:
-.br
+.SH EXAMPLES
+.B NOTE: The left justified titles are not part of the encoding description, and should not be written to an encoder file. The packet descriptions, which are here indented, should be left justified in use.
+.SH Message Packet:
+.PP
 Message Type: 0
 .br
 Sequence: 81
@@ -36,7 +37,8 @@ Hello World!
 .br
 ~
 
-.B Status Packet
+.SH Status Packet:
+.PP
 Message Type: 1
 .br
 Sequence: 9
@@ -57,8 +59,8 @@ Max Speed: 12.953100m/s
 .br
 ~
 
-.B Command Packet
-.br
+.SH Command Packet:
+.PP
 Message Type: 2
 .br
 Sequence: 8
@@ -71,10 +73,11 @@ GET_STATUS
 .br
 ~
 
-.B GPS Packet
+.SH GPS Packet:
+.PP
 Message Type: 3
 .br
-Sequence: 81
+Sequence: 0
 .br
 Destination ID: 6600
 .br
@@ -91,6 +94,18 @@ Bearing: 47.833332 deg
 Speed: 100km/h
 .br
 Accuracy: 5m
+.PP
+Latitude Degrees: 87 
+.br
+Minutes: 55 
+.br
+Seconds: 5
+.PP
+Longitude Degrees: -32 
+.br
+Minutes: 14 
+.br
+Seconds: 4
 .br
 ~
 
