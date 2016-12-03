@@ -160,3 +160,32 @@ float getFValue(
 
 char *extract(
     char *line);
+
+char *
+read_file(
+    int filesize,
+    FILE * words);
+
+int
+line_count(
+    char *contents);
+
+int
+packet_count(
+    char *contents);
+
+char **
+initialize(
+    int *packetcount,
+    const char *filename);
+
+char **
+setup(
+    int *linecount,
+    char *packet);
+
+void
+array_free(
+    char **content_array,
+    int wordcount);
+

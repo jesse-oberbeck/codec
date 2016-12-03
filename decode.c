@@ -63,6 +63,7 @@ main(
         int totalLen = (ntohl(zh->TotalLen) >> 8) - 12;
         unsigned int check = 0;
 
+        //Handle message packets.
         if (zergType == 0)
         {
             char *message = calloc(totalLen + 1, 1);
@@ -77,16 +78,19 @@ main(
             free(message);
         }
 
+        //Handle Status packets.
         if (zergType == 1)
         {
             zerg1Decode(words, zh);
         }
 
+        //Handle Command packets.
         if (zergType == 2)
         {
             zerg2Decode(words);
         }
 
+        //Handle GPS packets.
         if (zergType == 3)
         {
             zerg3Decode(words);
