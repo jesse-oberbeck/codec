@@ -636,26 +636,6 @@ reverseConvert64(
     return (result);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 char *
 read_file(
     int filesize,
