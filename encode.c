@@ -42,6 +42,7 @@ main(
     {
         linecount = 0;
         char **lines = setup(&linecount, packets[i]);
+
         --linecount;
         int zerg_type = getValue(lines[0]);
         int did = getValue(lines[2]);
@@ -80,7 +81,7 @@ main(
         //Encode message packet.
         if (zerg_type == 0)
         {
-            int zerglen = 12 + strlen(lines[4]); //Length of Zerg Header + length of message.
+            int zerglen = 12 + strlen(lines[4]);    //Length of Zerg Header + length of message.
             int p_len = 42 + zerglen;
             int total_len = htonl(p_len) >> 24;
             int ip_len = 28 + zerglen;
@@ -102,7 +103,7 @@ main(
         else if (zerg_type == 1)
         {
             int zerglen = (strlen(lines[4]) - 6);
-            int p_len = 54 + sizeof(struct Status) + zerglen; //54 is the sum of bytes prior to payload.
+            int p_len = 54 + sizeof(struct Status) + zerglen;   //54 is the sum of bytes prior to payload.
             int total_len = htonl(p_len) >> 24;
             int ip_len = 40 + sizeof(struct Status) + zerglen;
 
@@ -140,14 +141,14 @@ main(
                 p_len = 54 + 2; //54 is the sum of bytes prior to payload.
                 udpLength = 20 + 2;
                 total_len = htonl(p_len) >> 24;
-                ip_len = 40 + 2; //Length in IPv4 Header. 48 + payload.
+                ip_len = 40 + 2;    //Length in IPv4 Header. 48 + payload.
             }
             else
             {
                 p_len = 54 + 8; //54 is the sum of bytes prior to payload.
                 udpLength = 20 + 8;
                 total_len = htonl(p_len) >> 24;
-                ip_len = 40 + 8; //Length in IPv4 Header. 48 + payload.
+                ip_len = 40 + 8;    //Length in IPv4 Header. 48 + payload.
             }
 
             (*zh).TotalLen = htonl(udpLength - 8) >> 8;
@@ -239,9 +240,9 @@ main(
         //Encode GPS packet.
         else if (zerg_type == 3)
         {
-            int p_len = 54 + sizeof(struct GPS); //54 is the sum of bytes prior to payload.
+            int p_len = 54 + sizeof(struct GPS);    //54 is the sum of bytes prior to payload.
             int total_len = htonl(p_len) >> 24;
-            int ip_len = 40 + sizeof(struct GPS); //Length in IPv4 Header. 48 + payload.
+            int ip_len = 40 + sizeof(struct GPS);   //Length in IPv4 Header. 48 + payload.
 
             (*uh).Len = 8 + sizeof(struct GPS);
             (*zh).TotalLen =

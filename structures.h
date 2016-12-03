@@ -1,12 +1,12 @@
 /*Structure for passing two pieces of data back
-from a function*/
+ * from a function */
 struct Container
 {
     int zergType;
     int totalLen;
 };
 
-/*Structure for handling the File Header*/
+/*Structure for handling the File Header */
 struct __attribute__ ((__packed__)) FileHeader  //stackoverflow.com/questions/4306186/structure-padding-and-packing
 {
     int FileType:32;
@@ -18,7 +18,7 @@ struct __attribute__ ((__packed__)) FileHeader  //stackoverflow.com/questions/43
     int LLT:32;
 };
 
-/*Structure for handling the Pcap Header*/
+/*Structure for handling the Pcap Header */
 struct __attribute__ ((__packed__)) PcapHeader
 {
     int Epoch:32;
@@ -27,7 +27,7 @@ struct __attribute__ ((__packed__)) PcapHeader
     int PackLen:32;
 };
 
-/*Structure for handling the Ethernet Header*/
+/*Structure for handling the Ethernet Header */
 struct __attribute__ ((__packed__)) EthernetHeader
 {
     int Dmac:32;
@@ -37,7 +37,7 @@ struct __attribute__ ((__packed__)) EthernetHeader
     int Etype:16;
 };
 
-/*Structure for handling the IPv4 Header*/
+/*Structure for handling the IPv4 Header */
 struct __attribute__ ((__packed__)) Ipv4Header
 {
     int IHL:4;
@@ -55,7 +55,7 @@ struct __attribute__ ((__packed__)) Ipv4Header
     int DIP:32;
 };
 
-/*Structure for handling the UDP Header*/
+/*Structure for handling the UDP Header */
 struct __attribute__ ((__packed__)) UdpHeader
 {
     int Sport:16;
@@ -64,7 +64,7 @@ struct __attribute__ ((__packed__)) UdpHeader
     int CheckSum:16;
 };
 
-/*Structure for handling the Zerg Header*/
+/*Structure for handling the Zerg Header */
 struct __attribute__ ((__packed__)) ZergHeader
 {
     int Type:4;
@@ -75,7 +75,7 @@ struct __attribute__ ((__packed__)) ZergHeader
     int Sequence:32;
 };
 
-/*Structure for handling the Status type packet.*/
+/*Structure for handling the Status type packet. */
 struct __attribute__ ((__packed__)) Status
 {
     int HP:24;
@@ -87,13 +87,13 @@ struct __attribute__ ((__packed__)) Status
     //uint32_t Name   : 32;
 };
 
-/*Structure for handling the Command type packet.*/
+/*Structure for handling the Command type packet. */
 struct __attribute__ ((__packed__)) Command
 {
     int Command:16;
 };
 
-/*Structure for handling the GPS type packet.*/
+/*Structure for handling the GPS type packet. */
 struct __attribute__ ((__packed__)) GPS
 {
     uint64_t Longit;
@@ -161,31 +161,24 @@ float getFValue(
 char *extract(
     char *line);
 
-char *
-read_file(
+char *read_file(
     int filesize,
     FILE * words);
 
-int
-line_count(
+int line_count(
     char *contents);
 
-int
-packet_count(
+int packet_count(
     char *contents);
 
-char **
-initialize(
+char **initialize(
     int *packetcount,
     const char *filename);
 
-char **
-setup(
+char **setup(
     int *linecount,
     char *packet);
 
-void
-array_free(
+void array_free(
     char **content_array,
     int wordcount);
-
