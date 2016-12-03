@@ -42,13 +42,10 @@ main(
     {
         linecount = 0;
         char **lines = setup(&linecount, packets[i]);
+        --linecount;
         int zerg_type = getValue(lines[0]);
-
-        //int sequence = getValue(lines[1]) + 1;
-        //int zerg_len = getValue(lines[2]);
         int did = getValue(lines[2]);
         int sid = getValue(lines[3]);
-
 
         struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
         struct EthernetHeader *eh = calloc(sizeof(*eh), 1); //ethernet header
@@ -56,15 +53,13 @@ main(
         struct UdpHeader *uh = calloc(sizeof(*uh), 1);  //udp header
         struct ZergHeader *zh = calloc(sizeof(*zh), 1);
 
+        //Values that are the same in each packet, hard-coded.
         (*eh).Etype = 2048;
-
         (*ih).Version = '\x4';
         (*ih).IHL = '\x5';
         (*ih).Protocol = 17;
         (*uh).Sport = htonl(8);
         (*uh).Dport = htonl(4276);
-        //uh.Length
-
         (*zh).Version = '\x1';
         (*zh).Type = zerg_type;
         (*zh).Sid = htonl(sid) >> 16;
@@ -82,16 +77,15 @@ main(
         }
 
 
-
-        --linecount;
+        //Encode message packet.
         if (zerg_type == 0)
         {
-            int zerglen = 12 + strlen(lines[4]);
+            int zerglen = 12 + strlen(lines[4]); //Length of Zerg Header + length of message.
             int p_len = 42 + zerglen;
             int total_len = htonl(p_len) >> 24;
             int ip_len = 28 + zerglen;
 
-            (*uh).Len = htonl(8 + zerglen);
+            (*uh).Len = htonl(8 + zerglen); //Add 8 for length of UDP header.
             (*ph).PackLen = total_len;
             (*ph).DataLen = total_len;
             (*ih).TotalLen = htonl(ip_len) >> 16;   //Length of packet. 48 + payload
@@ -103,17 +97,19 @@ main(
             fwrite(zh, sizeof(*zh), 1, packet);
             fwrite(lines[4], strlen(lines[4]), 1, packet);
         }
+
+        //Encode Status packet.
         else if (zerg_type == 1)
         {
             int zerglen = (strlen(lines[4]) - 6);
-            int p_len = 54 + sizeof(struct Status) + zerglen;
+            int p_len = 54 + sizeof(struct Status) + zerglen; //54 is the sum of bytes prior to payload.
             int total_len = htonl(p_len) >> 24;
             int ip_len = 40 + sizeof(struct Status) + zerglen;
 
             (*uh).Len = htonl(8 + zerglen);
             (*ph).PackLen = total_len;
             (*ph).DataLen = total_len;
-            (*ih).TotalLen = htonl(ip_len) >> 16;   //Length of packet. 48 + payload
+            (*ih).TotalLen = htonl(ip_len) >> 16;   //Length in IPv4 Header. 48 + payload.
             int zergHeaderLenth = zerglen + 12;
 
             (*zh).TotalLen = htonl(zergHeaderLenth) >> 8;
@@ -125,6 +121,7 @@ main(
             zerg1Encode(lines, packet);
         }
 
+        //Encode Command packet.
         else if (zerg_type == 2)
         {
             int command_num = zerg2Encode(lines);
@@ -140,17 +137,17 @@ main(
 
             if (command_num % 2 == 0)
             {
-                p_len = 54 + 2;
+                p_len = 54 + 2; //54 is the sum of bytes prior to payload.
                 udpLength = 20 + 2;
                 total_len = htonl(p_len) >> 24;
-                ip_len = 40 + 2;
+                ip_len = 40 + 2; //Length in IPv4 Header. 48 + payload.
             }
             else
             {
-                p_len = 54 + 8;
+                p_len = 54 + 8; //54 is the sum of bytes prior to payload.
                 udpLength = 20 + 8;
                 total_len = htonl(p_len) >> 24;
-                ip_len = 40 + 8;
+                ip_len = 40 + 8; //Length in IPv4 Header. 48 + payload.
             }
 
             (*zh).TotalLen = htonl(udpLength - 8) >> 8;
@@ -165,6 +162,7 @@ main(
             fwrite(uh, sizeof(*uh), 1, packet);
             fwrite(zh, sizeof(*zh), 1, packet);
 
+            //Decide whether or not to include parameters 1 and 2.
             if (command_num % 2 != 0)
             {
 
@@ -238,19 +236,19 @@ main(
             }
         }
 
+        //Encode GPS packet.
         else if (zerg_type == 3)
         {
-            int p_len = 54 + sizeof(struct GPS);
+            int p_len = 54 + sizeof(struct GPS); //54 is the sum of bytes prior to payload.
             int total_len = htonl(p_len) >> 24;
-            int ip_len = 40 + sizeof(struct GPS);
+            int ip_len = 40 + sizeof(struct GPS); //Length in IPv4 Header. 48 + payload.
 
             (*uh).Len = 8 + sizeof(struct GPS);
             (*zh).TotalLen =
                 htonl(sizeof(struct GPS) + sizeof(struct ZergHeader)) >> 8;
             (*ph).PackLen = total_len;
             (*ph).DataLen = total_len;
-            (*ih).TotalLen = htonl(ip_len) >> 16;   //Length of packet. 48 + payload
-            //struct GPS *zp = calloc(sizeof(*zp), 1);
+            (*ih).TotalLen = htonl(ip_len) >> 16;
             fwrite(ph, sizeof(*ph), 1, packet);
             fwrite(eh, sizeof(*eh), 1, packet);
             fwrite(ih, sizeof(*ih), 1, packet);
