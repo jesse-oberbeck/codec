@@ -1,0 +1,99 @@
+.TH CODEC 1
+.SH NAME
+decoder \- decode zerg packets into human readable format.
+
+encoder \- turn files with correct formatting into pcaps.
+
+.SH SYNOPSIS
+
+.B decode
+[pcap file to be decoded]
+
+.B encode
+[file with packet instructions] [name of destination pcap file]
+
+
+.SH DESCRIPTION
+
+Decoder takes a pcap of exclusively Psionic Capture packets, and translates the contents into human readable format.
+
+Encoder takes descriptions of Psionic Capture packets, which are to be formatted in exactly the same way, and with the same data types as output by the Decoder, and creates a pcap file filled with packets matching the provided description. It is worth noting that packets are separated by a tilde(~) character on its own line.
+
+An example of the format for encoding is provided in the EXAMPLE section.
+
+.SH EXAMPLE
+.B Message Packet:
+.br
+Message Type: 0
+.br
+Sequence: 81
+.br
+Destination ID: 1234
+.br
+Source ID: 7890
+.br
+Hello World!
+.br
+~
+
+.B Status Packet
+Message Type: 1
+.br
+Sequence: 9
+.br
+Destination ID: 7890
+.br
+Source ID: 1337
+.br
+Name: ZaLgO
+.br
+HP: 17/35
+.br
+Type: Zergling
+.br
+Armor: 0
+.br
+Max Speed: 12.953100m/s
+.br
+~
+
+.B Command Packet
+.br
+Message Type: 2
+.br
+Sequence: 8
+.br
+Destination ID: 1337
+.br
+Source ID: 7890
+.br
+GET_STATUS
+.br
+~
+
+.B GPS Packet
+Message Type: 3
+.br
+Sequence: 81
+.br
+Destination ID: 6600
+.br
+Source ID: 1337
+.br
+Latitude: 87.918287001 deg. N
+.br
+Longitude: 32.234523432 deg. W
+.br
+Altitude: 43.5m
+.br
+Bearing: 47.833332 deg
+.br
+Speed: 100km/h
+.br
+Accuracy: 5m
+.br
+~
+
+
+.SH AUTHOR
+Jesse Schoenwald\-Oberbeck
