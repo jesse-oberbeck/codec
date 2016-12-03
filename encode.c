@@ -110,13 +110,14 @@ main(
             int zerglen = (strlen(lines[4]) - 6);
             int p_len = 54 + sizeof(struct Status) + zerglen;
             int total_len = htonl(p_len) >> 24;
-            int ip_len = 40 + sizeof(struct Status) +zerglen;
+            int ip_len = 40 + sizeof(struct Status) + zerglen;
 
             (*uh).Len = htonl(8 + zerglen);
             (*ph).PackLen = total_len;
             (*ph).DataLen = total_len;
             (*ih).TotalLen = htonl(ip_len) >> 16;   //Length of packet. 48 + payload
             int zergHeaderLenth = zerglen + 12;
+
             (*zh).TotalLen = htonl(zergHeaderLenth) >> 8;
             fwrite(ph, sizeof(*ph), 1, packet);
             fwrite(eh, sizeof(*eh), 1, packet);
@@ -133,8 +134,8 @@ main(
             int total_len = 0;
             int ip_len = 0;
             int udpLength = 0;
-            
-            if(command_num < 0)
+
+            if (command_num < 0)
             {
                 fprintf(stderr, "Invalid command.");
             }
@@ -218,15 +219,16 @@ main(
                 else if (strstr(lines[5], "Sequence") != NULL)
                 {
                     unsigned int sequence = getValue(lines[5]);
+
                     fwrite(&sequence, 2, 1, packet);
                     fwrite(&sequence, 4, 1, packet);
 
                 }
-                
+
                 else
                 {
                     fprintf(stderr, "Incorrect packet information.\n");
-                    return(1);
+                    return (1);
                 }
 
             }
@@ -245,7 +247,8 @@ main(
             int ip_len = 40 + sizeof(struct GPS);
 
             (*uh).Len = 8 + sizeof(struct GPS);
-            (*zh).TotalLen = htonl(sizeof(struct GPS) + sizeof(struct ZergHeader)) >> 8;
+            (*zh).TotalLen =
+                htonl(sizeof(struct GPS) + sizeof(struct ZergHeader)) >> 8;
             (*ph).PackLen = total_len;
             (*ph).DataLen = total_len;
             (*ih).TotalLen = htonl(ip_len) >> 16;   //Length of packet. 48 + payload
