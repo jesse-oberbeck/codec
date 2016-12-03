@@ -396,6 +396,18 @@ zerg2Encode(
     return (commandNum);
 }
 
+int minutes(double coordinate)
+{
+    int minutes = abs(60 * fmod(coordinate,1));
+    return(minutes);
+}
+
+int seconds(double coordinate)
+{
+    int seconds = abs(60*fmod(60*fmod(coordinate, 1), 1));
+    return(seconds);
+}
+
 void
 zerg3Decode(
     FILE * words)
@@ -444,6 +456,8 @@ zerg3Decode(
     printf("Bearing: %f deg\n", bearing);
     printf("Speed: %.0fkm/h\n", speed * 3.6);   //3.6 to convert m/s to km/h.
     printf("Accuracy: %.0fm\n", accuracy);
+    printf("\nLatitude Degrees: %i \nMinutes: %i \nSeconds: %i\n\n", (int)latitude, minutes(latitude), seconds(latitude));
+    printf("Longitude Degrees: %i \nMinutes: %i \nSeconds: %i\n", (int)longitude, minutes(longitude), seconds(longitude));
     free(gps);
 }
 
