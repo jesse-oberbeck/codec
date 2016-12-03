@@ -15,8 +15,8 @@ int
 getValue(
     char *string)
 {
-/*Returns the integer value contained in a string
-by first removing all alpha characters, and colons.*/
+    /*Returns the integer value contained in a string
+     * by first removing all alpha characters, and colons. */
 
     int len = strlen(string);
 
@@ -36,8 +36,8 @@ double
 getDValue(
     char *string)
 {
-/*Returns the double value contained in a string
-by first removing all alpha characters, slashes and colons.*/
+    /*Returns the double value contained in a string
+     * by first removing all alpha characters, slashes and colons. */
 
     int len = strlen(string);
 
@@ -57,8 +57,8 @@ float
 getFValue(
     char *string)
 {
-/*Returns the float value contained in a string
-by first removing all alpha characters, slashes and colons.*/
+    /*Returns the float value contained in a string
+     * by first removing all alpha characters, slashes and colons. */
 
     int len = strlen(string);
 
@@ -78,8 +78,8 @@ int
 processFile(
     FILE * words)
 {
-/*Reads all headers prior to the Zerg header and payload, returning
-a zero if there is no padding, or the number of padding bytes.*/
+    /*Reads all headers prior to the Zerg header and payload, returning
+     * a zero if there is no padding, or the number of padding bytes. */
 
     struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
     struct EthernetHeader *eh = calloc(sizeof(*eh), 1); //ethernet header
@@ -112,7 +112,7 @@ zerg1Decode(
     FILE * words,
     struct ZergHeader *zh)
 {
-/*Decoder for "status" type packets. Pulls out and prints values.*/
+    /*Decoder for "status" type packets. Pulls out and prints values. */
 
     struct Status *st = calloc(sizeof(*st), 1);
 
@@ -128,8 +128,10 @@ zerg1Decode(
 
     const char *typeArray[] =
         { "Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone",
-"Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk",
-"Mutalisk", "Defiler", "Devourer" };
+        "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge",
+            "Ultralisk",
+        "Mutalisk", "Defiler", "Devourer"
+    };
 
     printf("Type: %s\n", typeArray[unitTypeBin]);
     printf("Armor: %d\n", ntohl(st->Armor) >> 24);
@@ -147,8 +149,8 @@ char *
 extract(
     char *line)
 {
-/*Pulls out and returns the string after the
-colon that appears in every line of output.*/
+    /*Pulls out and returns the string after the
+     * colon that appears in every line of output. */
 
     //Extract from line of file.
     int i = 0;
@@ -172,8 +174,8 @@ zerg1Encode(
     char **lines,
     FILE * packet)
 {
-/*Encoder for status type packets. Extracts values from a
-properly formatted set of values in the user given file.*/
+    /*Encoder for status type packets. Extracts values from a
+     * properly formatted set of values in the user given file. */
 
     if (strstr(lines[4], "Name") == NULL)
     {
@@ -215,8 +217,10 @@ properly formatted set of values in the user given file.*/
 
     const char *typeArray[] =
         { "Overmind", "Larva", "Cerebrate", "Overlord", "Queen", "Drone",
-"Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge", "Ultralisk",
-"Mutalisk", "Defiler", "Devourer" };
+        "Zergling", "Lurker", "Broodling", "Hydralisk", "Guardian", "Scourge",
+            "Ultralisk",
+        "Mutalisk", "Defiler", "Devourer"
+    };
     int type = 0;
 
     for (int i = 0; i < 16; ++i)
@@ -249,8 +253,8 @@ void
 zerg2Decode(
     FILE * words)
 {
-/*Decoder for Command type packets. Pulls corresponding
-data from pcap file, and prints it.*/
+    /*Decoder for Command type packets. Pulls corresponding
+     * data from pcap file, and prints it. */
     struct Command *cm = calloc(sizeof(*cm), 1);
 
     fread(cm, sizeof(struct Command), 1, words);
@@ -313,8 +317,10 @@ data from pcap file, and prints it.*/
     case (7):
         printf("REPEAT\n");
         unsigned int *filler = calloc(4, 1);
+
         fread(filler, 2, 1, words);
         unsigned int *sequence = calloc(4, 1);
+
         fread(sequence, 4, 1, words);
         free(filler);
         printf("Sequence: %d\n", *sequence);
@@ -330,9 +336,9 @@ int
 zerg2Encode(
     char **lines)
 {
-/*Encoder for Status type packets. Matches strings found in
-the packet, and returns the command number associated so that
-it may be written to the pcap file.*/
+    /*Encoder for Status type packets. Matches strings found in
+     * the packet, and returns the command number associated so that
+     * it may be written to the pcap file. */
     struct Command *cm = calloc(sizeof(*cm), 1);
     char *comm = lines[4];
     int commandNum = 0;
@@ -347,12 +353,14 @@ it may be written to the pcap file.*/
         commandNum = 1;
     }
 
-    else if ((strcmp(comm, "GET_GPS") == 0) || (strcmp(comm, "GET_GPS\n") == 0))
+    else if ((strcmp(comm, "GET_GPS") == 0) ||
+             (strcmp(comm, "GET_GPS\n") == 0))
     {
         commandNum = 2;
     }
 
-    else if ((strcmp(comm, "RESERVED") == 0) || (strcmp(comm, "RESERVED\n") == 0))
+    else if ((strcmp(comm, "RESERVED") == 0) ||
+             (strcmp(comm, "RESERVED\n") == 0))
     {
         commandNum = 3;
     }
@@ -362,7 +370,8 @@ it may be written to the pcap file.*/
         commandNum = 4;
     }
 
-    else if ((strcmp(comm, "SET_GROUP") == 0) || (strcmp(comm, "SET_GROUP\n") == 0))
+    else if ((strcmp(comm, "SET_GROUP") == 0) ||
+             (strcmp(comm, "SET_GROUP\n") == 0))
     {
         commandNum = 5;
     }
@@ -380,7 +389,7 @@ it may be written to the pcap file.*/
     else
     {
         free(cm);
-        return(-1);
+        return (-1);
     }
 
     free(cm);
@@ -391,8 +400,8 @@ void
 zerg3Decode(
     FILE * words)
 {
-/*Decoder for GPS type packets. Pulls corresponding data from
-packet, and prints it.*/
+    /*Decoder for GPS type packets. Pulls corresponding data from
+     * packet, and prints it. */
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
     fread(gps, sizeof(struct GPS), 1, words);
@@ -443,9 +452,9 @@ zerg3Encode(
     char **lines,
     FILE * packet)
 {
-/*Encoder for GPS type packet. First checks for presence
-of correct lines in encode file, then extracts values
-and writes them to the pcap file.*/
+    /*Encoder for GPS type packet. First checks for presence
+     * of correct lines in encode file, then extracts values
+     * and writes them to the pcap file. */
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
     if (strstr(lines[4], "Latitude") == NULL)
@@ -522,19 +531,21 @@ processZergHeader(
     struct ZergHeader *zh,
     struct Container *c)
 {
-/*Decodes and prints all packet information prior
-to the Zerg Header.*/
+    /*Decodes and prints all packet information prior
+     * to the Zerg Header. */
 
     fread(zh, sizeof(struct ZergHeader), 1, words);
     int zergType = ntohl(zh->Type) >> 24;
     int totalLen = ntohl(zh->TotalLen) >> 8;
-    if((zergType < 0) || (zergType > 3))
+
+    if ((zergType < 0) || (zergType > 3))
     {
         fprintf(stderr, "Invalid packet detected.\n");
         exit(1);
     }
     int sequence = ntohl(zh->Sequence);
-    if((sequence < 0) || (sequence > 65535))
+
+    if ((sequence < 0) || (sequence > 65535))
     {
         fprintf(stderr, "Invalid packet detected.\n");
         exit(1);
@@ -555,7 +566,7 @@ int
 fileSize(
     FILE * words)
 {
-/*Gets end of file.*/
+    /*Gets end of file. */
 
     fseek(words, 0, SEEK_END);
     long end = ftell(words);
@@ -568,7 +579,7 @@ float
 convert32(
     uint32_t num)
 {
-/*Converts a uint32_t to a float.*/
+    /*Converts a uint32_t to a float. */
     union
     {
         float f;
@@ -585,7 +596,7 @@ uint32_t
 reverseConvert32(
     float num)
 {
-/*Converts a float to a uint32_t.*/
+    /*Converts a float to a uint32_t. */
     union
     {
         float f;
@@ -602,7 +613,7 @@ double
 convert64(
     uint64_t num)
 {
-/*Converts a uint64_t to a double.*/
+    /*Converts a uint64_t to a double. */
     union
     {
         double f;
@@ -621,7 +632,7 @@ uint64_t
 reverseConvert64(
     double num)
 {
-/*Converts a double to a uint64_t.*/
+    /*Converts a double to a uint64_t. */
     union
     {
         double f;
@@ -641,7 +652,7 @@ read_file(
     int filesize,
     FILE * words)
 {
-/*Read in a file, and return it's contents. */
+    /*Read in a file, and return it's contents. */
 
     char *contents = calloc(filesize + 1, 1);
 
@@ -654,10 +665,10 @@ int
 line_count(
     char *contents)
 {
-/*Line count. Tokenizes file based on newline, 
- * increasing a counter on each word.
- * returns the value held in the counter. */
- 
+    /*Line count. Tokenizes file based on newline, 
+     * increasing a counter on each word.
+     * returns the value held in the counter. */
+
     char *word = strtok(contents, "\n");
     int wordcount = 0;
 
@@ -673,7 +684,7 @@ int
 packet_count(
     char *contents)
 {
-/*Count the number of ~ delimited packets.*/
+    /*Count the number of ~ delimited packets. */
 
     char *word = strtok(contents, "~");
     int packetcount = 0;
@@ -691,8 +702,8 @@ initialize(
     int *packetcount,
     const char *filename)
 {
-/*Separate packets based on ~, and return an array
-of said packets.*/
+    /*Separate packets based on ~, and return an array
+     * of said packets. */
 
     FILE *words = fopen(filename, "r");
     int filesize = fileSize(words);
@@ -726,8 +737,8 @@ setup(
     int *linecount,
     char *packet)
 {
-/*Break packets up based on lines, and return an
-array of said lines.*/
+    /*Break packets up based on lines, and return an
+     * array of said lines. */
 
     char *contents = packet;
     char *contents2 = calloc(strlen(packet) + 1, 1);
@@ -758,7 +769,7 @@ array_free(
     char **content_array,
     int wordcount)
 {
-/*Frees allocated space in array, then array itself. */
+    /*Frees allocated space in array, then array itself. */
     for (int i = 0; i <= wordcount; ++i)
     {
         free(content_array[i]);
