@@ -61,13 +61,18 @@ main(
         processZergHeader(words, zh, c);
         int zergType = c->zergType;
         int totalLen = (ntohl(zh->TotalLen) >> 8) - 12;
+        unsigned int check = 0;
 
-        //printf("Zerg Len: %d\n", total_len);
         if (zergType == 0)
         {
             char *message = calloc(totalLen + 1, 1);
 
-            fread(message, totalLen, 1, words);
+            check = fread(message, totalLen, 1, words);
+            if(check > sizeof(*message))
+            {
+                fprintf(stderr, "Invalid packet detected. Stopping.\n");
+                exit(1);
+            }
             printf("%s\n", message);
             free(message);
         }

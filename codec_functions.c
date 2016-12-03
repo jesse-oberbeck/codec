@@ -249,6 +249,8 @@ void
 zerg2Decode(
     FILE * words)
 {
+/*Decoder for Command type packets. Pulls corresponding
+data from pcap file, and prints it.*/
     struct Command *cm = calloc(sizeof(*cm), 1);
 
     fread(cm, sizeof(struct Command), 1, words);
@@ -328,6 +330,9 @@ int
 zerg2Encode(
     char **lines)
 {
+/*Encoder for Status type packets. Matches strings found in
+the packet, and returns the command number associated so that
+it may be written to the pcap file.*/
     struct Command *cm = calloc(sizeof(*cm), 1);
     char *comm = lines[4];
     int commandNum = 0;
@@ -386,6 +391,8 @@ void
 zerg3Decode(
     FILE * words)
 {
+/*Decoder for GPS type packets. Pulls corresponding data from
+packet, and prints it.*/
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
     fread(gps, sizeof(struct GPS), 1, words);
@@ -515,13 +522,27 @@ processZergHeader(
     struct ZergHeader *zh,
     struct Container *c)
 {
+/*Decodes and prints all packet information prior
+to the Zerg Header.*/
+
     fread(zh, sizeof(struct ZergHeader), 1, words);
     int zergType = ntohl(zh->Type) >> 24;
     int totalLen = ntohl(zh->TotalLen) >> 8;
+    if((zergType < 0) || (zergType > 3))
+    {
+        fprintf(stderr, "Invalid packet detected.\n");
+        exit(1);
+    }
+    int sequence = ntohl(zh->Sequence);
+    if((sequence < 0) || (sequence > 65535))
+    {
+        fprintf(stderr, "Invalid packet detected.\n");
+        exit(1);
+    }
 
     //printf("Zerg Version: %x\n", ntohl(zh->Version) >> 24);
     printf("Message Type: %d\n", zergType);
-    printf("Sequence: %d\n", ntohl(zh->Sequence));
+    printf("Sequence: %d\n", sequence);
     //printf("Zerg Packet Length: %d\n", totalLen);
     printf("Destination ID: %d\n", ntohl(zh->Did) >> 16);
     printf("Source ID: %d\n", ntohl(zh->Sid) >> 16);
@@ -530,11 +551,11 @@ processZergHeader(
     return;
 }
 
-/*Get end of file */
 int
 fileSize(
     FILE * words)
 {
+/*Gets end of file.*/
 
     fseek(words, 0, SEEK_END);
     long end = ftell(words);
@@ -547,6 +568,7 @@ float
 convert32(
     uint32_t num)
 {
+/*Converts a uint32_t to a float.*/
     union
     {
         float f;
@@ -563,6 +585,7 @@ uint32_t
 reverseConvert32(
     float num)
 {
+/*Converts a float to a uint32_t.*/
     union
     {
         float f;
@@ -579,6 +602,7 @@ double
 convert64(
     uint64_t num)
 {
+/*Converts a uint64_t to a double.*/
     union
     {
         double f;
@@ -597,6 +621,7 @@ uint64_t
 reverseConvert64(
     double num)
 {
+/*Converts a double to a uint64_t.*/
     union
     {
         double f;
