@@ -69,7 +69,7 @@ main(
             char *message = calloc(totalLen + 1, 1);
 
             check = fread(message, totalLen, 1, words);
-            if(check > sizeof(*message))
+            if (check > sizeof(*message))
             {
                 fprintf(stderr, "Invalid packet detected. Stopping.\n");
                 exit(1);
