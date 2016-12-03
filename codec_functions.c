@@ -670,7 +670,7 @@ reverseConvert64(
 }
 
 char *
-read_file(
+readFile(
     int filesize,
     FILE * words)
 {
@@ -684,7 +684,7 @@ read_file(
 }
 
 int
-line_count(
+lineCount(
     char *contents)
 {
     /*Line count. Tokenizes file based on newline, 
@@ -703,7 +703,7 @@ line_count(
 }
 
 int
-packet_count(
+packetCount(
     char *contents)
 {
     /*Count the number of ~ delimited packets. */
@@ -729,11 +729,11 @@ initialize(
 
     FILE *words = fopen(filename, "r");
     int filesize = fileSize(words);
-    char *contents = read_file(filesize, words);
+    char *contents = readFile(filesize, words);
     char *contents2 = calloc(filesize + 1, 1);
 
     strncpy(contents2, contents, strlen(contents));
-    *packetcount = packet_count(contents);
+    *packetcount = packetCount(contents);
     char **content_array;
 
     content_array = calloc((*packetcount + 1) * (int) (sizeof(char *)), 1);
@@ -766,7 +766,7 @@ setup(
     char *contents2 = calloc(strlen(packet) + 1, 1);
 
     strncpy(contents2, contents, strlen(contents));
-    *linecount = line_count(contents);
+    *linecount = lineCount(contents);
     char **content_array;
 
     content_array = calloc(*linecount * (int) (sizeof(char *) + 1), 1);
@@ -787,14 +787,14 @@ setup(
 }
 
 void
-array_free(
-    char **content_array,
+arrayFree(
+    char **contentArray,
     int wordcount)
 {
     /*Frees allocated space in array, then array itself. */
     for (int i = 0; i <= wordcount; ++i)
     {
-        free(content_array[i]);
+        free(contentArray[i]);
     }
-    free(content_array);
+    free(contentArray);
 }

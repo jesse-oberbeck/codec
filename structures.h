@@ -161,14 +161,14 @@ float getFValue(
 char *extract(
     char *line);
 
-char *read_file(
+char *readFile(
     int filesize,
     FILE * words);
 
-int line_count(
+int lineCount(
     char *contents);
 
-int packet_count(
+int packetCount(
     char *contents);
 
 char **initialize(
@@ -179,6 +179,6 @@ char **setup(
     int *linecount,
     char *packet);
 
-void array_free(
-    char **content_array,
+void arrayFree(
+    char **contentArray,
     int wordcount);

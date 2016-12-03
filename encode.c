@@ -268,7 +268,7 @@ main(
             free(uh);
             free(zh);
             fclose(packet);
-            array_free(lines, linecount);
+            arrayFree(lines, linecount);
             free(packets);
             return (1);
         }
@@ -281,7 +281,7 @@ main(
         free(uh);
         free(zh);
 
-        array_free(lines, linecount);
+        arrayFree(lines, linecount);
 
     }
     free(packets);
