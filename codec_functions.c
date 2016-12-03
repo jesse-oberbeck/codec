@@ -175,27 +175,27 @@ zerg1Encode(
 /*Encoder for status type packets. Extracts values from a
 properly formatted set of values in the user given file.*/
 
-    if (strstr(lines[4], "Name:") != NULL)
+    if (strstr(lines[4], "Name") == NULL)
     {
         fprintf(stderr, "Incorrect packet instruction.\n");
         exit(1);
     }
-    if (strstr(lines[5], "HP:") != NULL)
+    if (strstr(lines[5], "HP") == NULL)
     {
         fprintf(stderr, "Incorrect packet instruction.\n");
         exit(1);
     }
-    if (strstr(lines[6], "Type:") != NULL)
+    if (strstr(lines[6], "Type") == NULL)
     {
         fprintf(stderr, "Incorrect packet instruction.\n");
         exit(1);
     }
-    if (strstr(lines[7], "Armor:") != NULL)
+    if (strstr(lines[7], "Armor") == NULL)
     {
         fprintf(stderr, "Incorrect packet instruction.\n");
         exit(1);
     }
-    if (strstr(lines[8], "Max Speed:") != NULL)
+    if (strstr(lines[8], "Max Speed") == NULL)
     {
         fprintf(stderr, "Incorrect packet instruction.\n");
         exit(1);
@@ -405,11 +405,11 @@ zerg3Decode(
 
     if (longitude > 0)
     {
-        printf("longitude: %.9f deg. E\n", longitude);
+        printf("Longitude: %.9f deg. E\n", longitude);
     }
     else
     {
-        printf("longitude: %.9f deg. W\n", fabs(longitude));
+        printf("Longitude: %.9f deg. W\n", fabs(longitude));
     }
 
     uint32_t altitudeBin = ntohl(gps->Altit);
@@ -441,39 +441,39 @@ of correct lines in encode file, then extracts values
 and writes them to the pcap file.*/
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
+    if (strstr(lines[4], "Latitude") == NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[5], "Longitude") == NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[6], "Altitude") == NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[7], "Bearing") == NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[8], "Speed") == NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[9], "Accuracy") == NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+
     double lat = getDValue(lines[4]);
     double lon = getDValue(lines[5]);
-
-    if (strstr(lines[4], "Latitude") != NULL)
-    {
-        fprintf(stderr, "Incorrect packet instruction.\n");
-        exit(1);
-    }
-    if (strstr(lines[5], "Longitude") != NULL)
-    {
-        fprintf(stderr, "Incorrect packet instruction.\n");
-        exit(1);
-    }
-    if (strstr(lines[6], "Altitude") != NULL)
-    {
-        fprintf(stderr, "Incorrect packet instruction.\n");
-        exit(1);
-    }
-    if (strstr(lines[7], "Bearing") != NULL)
-    {
-        fprintf(stderr, "Incorrect packet instruction.\n");
-        exit(1);
-    }
-    if (strstr(lines[8], "Speed") != NULL)
-    {
-        fprintf(stderr, "Incorrect packet instruction.\n");
-        exit(1);
-    }
-    if (strstr(lines[9], "Accuracy") != NULL)
-    {
-        fprintf(stderr, "Incorrect packet instruction.\n");
-        exit(1);
-    }
 
     if (strstr(lines[4], "S") != NULL)
     {
