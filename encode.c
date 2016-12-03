@@ -30,7 +30,7 @@ main(
     FILE *packet = fopen(argv[2], "wb+");
     struct FileHeader *fh = calloc(sizeof(*fh), 1);
 
-    (*fh).FileType = htonl((unsigned int) 3569595041);  //"\xD4\xC3\xB2\xA1"
+    (*fh).FileType = htonl((unsigned int) 3569595041);  //3569595041 = "\xD4\xC3\xB2\xA1"
     (*fh).MajorVer = 2;
     (*fh).MinorVer = 4;
     (*fh).MaxLen = 65535;
@@ -69,8 +69,6 @@ main(
         (*zh).Type = zerg_type;
         (*zh).Sid = htonl(sid) >> 16;
         (*zh).Did = htonl(did) >> 16;
-
-        (*ph).PackLen = 94;
 
         if (!packet)
         {
