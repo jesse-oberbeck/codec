@@ -346,7 +346,8 @@ main(
                 
                 else
                 {
-                    fprintf(stderr, "Incorrect packet information.");
+                    fprintf(stderr, "Incorrect packet information.\n");
+                    return(1);
                 }
 
             }

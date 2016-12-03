@@ -15,6 +15,9 @@ int
 getValue(
     char *string)
 {
+/*Returns the integer value contained in a string
+by first removing all alpha characters, and colons.*/
+
     int len = strlen(string);
 
     for (int i = 0; i < len; ++i)
@@ -33,6 +36,9 @@ double
 getDValue(
     char *string)
 {
+/*Returns the double value contained in a string
+by first removing all alpha characters, slashes and colons.*/
+
     int len = strlen(string);
 
     for (int i = 0; i < len; ++i)
@@ -51,6 +57,9 @@ float
 getFValue(
     char *string)
 {
+/*Returns the float value contained in a string
+by first removing all alpha characters, slashes and colons.*/
+
     int len = strlen(string);
 
     for (int i = 0; i < len; ++i)
@@ -69,6 +78,8 @@ int
 processFile(
     FILE * words)
 {
+/*Reads all headers prior to the Zerg header and payload, returning
+a zero if there is no padding, or the number of padding bytes.*/
 
     struct PcapHeader *ph = calloc(sizeof(*ph), 1); //pcap header
     struct EthernetHeader *eh = calloc(sizeof(*eh), 1); //ethernet header
@@ -101,6 +112,8 @@ zerg1Decode(
     FILE * words,
     struct ZergHeader *zh)
 {
+/*Decoder for "status" type packets. Pulls out and prints values.*/
+
     struct Status *st = calloc(sizeof(*st), 1);
 
     fread(st, sizeof(struct Status), 1, words);
@@ -134,6 +147,9 @@ char *
 extract(
     char *line)
 {
+/*Pulls out and returns the string after the
+colon that appears in every line of output.*/
+
     //Extract from line of file.
     int i = 0;
     char *name = line;
@@ -156,6 +172,36 @@ zerg1Encode(
     char **lines,
     FILE * packet)
 {
+/*Encoder for status type packets. Extracts values from a
+properly formatted set of values in the user given file.*/
+
+    if (strstr(lines[4], "Name:") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[5], "HP:") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[6], "Type:") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[7], "Armor:") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[8], "Max Speed:") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+
+
     struct Status *st = calloc(sizeof(*st), 1);
     char *name = extract(lines[4]);
 
@@ -218,7 +264,6 @@ zerg2Decode(
         unsigned int *distance = calloc(4, 1);
 
         fread(distance, 2, 1, words);
-
         printf("Distance: %d\n", *distance);
 
         uint32_t bearingBin;
@@ -351,11 +396,11 @@ zerg3Decode(
 
     if (latitude > 0)
     {
-        printf("latitude: %.9f deg. N\n", latitude);
+        printf("Latitude: %.9f deg. N\n", latitude);
     }
     else
     {
-        printf("latitude: %.9f deg. S\n", fabs(latitude));
+        printf("Latitude: %.9f deg. S\n", fabs(latitude));
     }
 
     if (longitude > 0)
@@ -391,10 +436,44 @@ zerg3Encode(
     char **lines,
     FILE * packet)
 {
+/*Encoder for GPS type packet. First checks for presence
+of correct lines in encode file, then extracts values
+and writes them to the pcap file.*/
     struct GPS *gps = calloc(sizeof(*gps), 1);
 
     double lat = getDValue(lines[4]);
     double lon = getDValue(lines[5]);
+
+    if (strstr(lines[4], "Latitude") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[5], "Longitude") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[6], "Altitude") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[7], "Bearing") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[8], "Speed") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
+    if (strstr(lines[9], "Accuracy") != NULL)
+    {
+        fprintf(stderr, "Incorrect packet instruction.\n");
+        exit(1);
+    }
 
     if (strstr(lines[4], "S") != NULL)
     {
